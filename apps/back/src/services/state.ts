@@ -1,8 +1,8 @@
 import { existsSync } from "fs";
-import { AppState } from "../types";
 import * as fs from "fs/promises";
+import { AppState } from "../types";
 
-const path = require('path');
+const path = require("path");
 
 async function isExists(path: string) {
   try {
@@ -11,22 +11,21 @@ async function isExists(path: string) {
   } catch {
     return false;
   }
-};
+}
 
 async function writeFile(filePath: string, data: string) {
   try {
     const dirname = path.dirname(filePath);
     const exist = await isExists(dirname);
     if (!exist) {
-      await fs.mkdir(dirname, {recursive: true});
+      await fs.mkdir(dirname, { recursive: true });
     }
-    
-    await fs.writeFile(filePath, data, 'utf8');
+
+    await fs.writeFile(filePath, data, "utf8");
   } catch (err: any) {
     throw new Error(err);
   }
 }
-
 
 export class State {
   private static state: AppState;
@@ -42,10 +41,12 @@ export class State {
     }
 
     if (existsSync(State.path)) {
-      State.state = JSON.parse((await fs.readFile(State.path)).toString("utf-8"));
+      State.state = JSON.parse(
+        (await fs.readFile(State.path)).toString("utf-8")
+      );
     } else {
       State.state = {
-        tasks: []
+        tasks: [],
       };
     }
 
