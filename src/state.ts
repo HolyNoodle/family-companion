@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
 import * as fs from "fs/promises";
-import { AppState } from "./types";
+import { AppState, Task } from "./types";
 
 const path = require("path");
 
@@ -36,18 +36,24 @@ export class State {
   }
 
   public static async get() {
-    if (State.state) {
-      return State.state;
-    }
+    if (!State.state) {
+      if (existsSync(State.path)) {
+        const rawState = JSON.parse(
+          (await fs.readFile(State.path)).toString("utf-8")
+        );
 
-    if (existsSync(State.path)) {
-      State.state = JSON.parse(
-        (await fs.readFile(State.path)).toString("utf-8")
-      );
-    } else {
-      State.state = {
-        tasks: [],
-      };
+        State.state = {
+          ...rawState,
+          tasks: rawState.tasks.map(
+            (task: Task) =>
+              ({ ...task, lastUpdatedAt: new Date(task.lastUpdatedAt) } as Task)
+          ),
+        };
+      } else {
+        State.state = {
+          tasks: [],
+        };
+      }
     }
 
     return State.state;
@@ -56,6 +62,6 @@ export class State {
   public static set(state: AppState) {
     State.state = state;
 
-    writeFile(State.path, JSON.stringify(state));
+    return writeFile(State.path, JSON.stringify(state));
   }
 }
