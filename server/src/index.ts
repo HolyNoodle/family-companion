@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { JobScheduler, getExecutionDates } from "./domains/Job";
@@ -33,6 +33,7 @@ const app = express();
 
 app.use(helmet());
 app.use(cors());
+app.use(json());
 
 app.use(express.static("public"));
 
@@ -115,6 +116,12 @@ app.listen(PORT, async () => {
 
   app.post("/tasks", (req, res) => {
     const task: WithId<Task> = req.body;
+
+    if (!task.label || !task.cron) {
+      res.writeHead(400, "Invalid task parameters").end();
+      return;
+    }
+
     if (!task.id) {
       task.id = v4();
       state.tasks.push(task);
@@ -138,13 +145,13 @@ app.listen(PORT, async () => {
   });
 
   app.delete("/tasks", (req, res) => {
-    if (!req.body.id) {
+    if (!req.query.id) {
       res.writeHead(400, "Id is required");
       res.end();
       return;
     }
 
-    const index = state.tasks.findIndex((t) => t.id === req.body.id);
+    const index = state.tasks.findIndex((t) => t.id === req.query.id);
 
     if (index < 0) {
       res.writeHead(404, "Task not found");
@@ -161,15 +168,14 @@ app.listen(PORT, async () => {
   });
 
   app.get("/schedule", (req, res) => {
-    const start = new Date();
-    const end = new Date();
-
-    end.setDate(start.getDate() + 7);
+    const { start, end } = req.query;
+    const startDate = start? new Date(start as string) : new Date();
+    const endDate = end? new Date(end as string) : new Date();
 
     const result = state.tasks.map((task) => {
       return {
         ...task,
-        schedule: getExecutionDates(task, start, end),
+        schedule: getExecutionDates(task, startDate, endDate),
       };
     });
 

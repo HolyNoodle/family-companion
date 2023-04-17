@@ -15,10 +15,14 @@ export class JobScheduler extends EventEmitter {
 
   start() {
     this.taskIds = this.tasks.reduce((ids, task) => {
-      return {
-        ...ids,
-        [task.id]: this.startTask(task),
-      };
+      try {
+        return {
+          ...ids,
+          [task.id]: this.startTask(task),
+        };
+      } catch {
+        return ids;
+      }
     }, {});
   }
 
