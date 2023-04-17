@@ -84,9 +84,9 @@ export class HomeAssistantConnection extends EventEmitter {
     return promise;
   }
 
-  async send(message: HomeAssistantMessage<any>) {
+  send(message: HomeAssistantMessage<any>) {
     if (!this.ready) {
-      throw new Error("Home assistant connection not ready yet.");
+      return Promise.reject("Home assistant connection not ready yet.");
     }
 
     if (!message.id) {
@@ -97,14 +97,7 @@ export class HomeAssistantConnection extends EventEmitter {
     this.ws!.send(JSON.stringify(message));
 
     return new Promise((resolve) => {
-      const event = message.id + "";
-      const responseListener = (response: HomeAssistantResponse) => {
-        if (response.type === "result") {
-          resolve(response.result);
-        }
-      };
-
-      this.once(event, responseListener);
+      this.once(message.id + "", resolve);
     });
   }
 }

@@ -1,5 +1,5 @@
 import { WebSocket } from "ws";
-import { HomeAssistantConnection } from "./connection";
+import { HomeAssistantConnection, HomeAssistantMessage } from "./connection";
 
 jest.mock("ws");
 
@@ -34,6 +34,36 @@ describe("HomeAssistantConnection", () => {
     );
   });
 
+  it("Should close connection", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+    const startPromise = connection.start();
+
+    expect(connection["ws"]).toBeInstanceOf(WebSocket);
+
+    const ws = connection["ws"];
+
+    ws!.onopen!(undefined as any);
+
+    ws!.onmessage!({
+      data: Buffer.from(JSON.stringify({ type: "auth_ok" })),
+    } as any);
+
+    await startPromise;
+
+    await connection.stop();
+
+    expect(ws!.close).toHaveBeenCalledTimes(1);
+  });
+
+
+  it("Should close connection", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+    await expect(connection.stop()).resolves.toBeUndefined();
+  });
+
+
   it("Should resolve start when home assistant validate auth", async () => {
     const connection = new HomeAssistantConnection("123token");
 
@@ -49,7 +79,7 @@ describe("HomeAssistantConnection", () => {
       data: Buffer.from(JSON.stringify({ type: "auth_ok" })),
     } as any);
 
-    expect(startPromise).resolves.toBeUndefined();
+    await expect(startPromise).resolves.toBeUndefined();
   });
 
   it("Should reject start when home assistant invalidate auth", async () => {
@@ -67,7 +97,7 @@ describe("HomeAssistantConnection", () => {
       data: Buffer.from(JSON.stringify({ type: "auth_invalid" })),
     } as any);
 
-    expect(startPromise).rejects.toBe("Invalid auth");
+    await expect(startPromise).rejects.toBe("Invalid auth");
   });
 
   it("Should emit event when result is received", async () => {
@@ -96,5 +126,66 @@ describe("HomeAssistantConnection", () => {
 
     expect(eventSpy).toHaveBeenCalledTimes(1);
     expect(eventSpy).toHaveBeenCalledWith({ test: "name" });
+  });
+
+  it("Should send message to home assistant", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+    connection.start();
+
+    const ws = connection["ws"];
+    ws!.onopen!(undefined as any);
+
+    connection["ready"] = true;
+
+    const message = { id: 1 } as any as HomeAssistantMessage<any>;
+    const sendPromise = connection.send(message);
+
+    ws!.onmessage!({
+      data: Buffer.from(
+        JSON.stringify({
+          type: "result",
+          id: 1,
+          result: { test: "name" },
+        })
+      ),
+    } as any);
+
+    await expect(sendPromise).resolves.toStrictEqual({
+      test: "name",
+    });
+  });
+
+  it("Should not send message to home assistant when not ready", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+    connection.start();
+
+    const message = {} as HomeAssistantMessage<any>;
+    const sendPromise = connection.send(message);
+
+    await expect(sendPromise).rejects.toBe(
+      "Home assistant connection not ready yet."
+    );
+  });
+
+  it("Should send message with next id to home assistant when id is not present", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+
+    connection.start();
+
+    const ws = connection["ws"];
+    ws!.onopen!(undefined as any);
+
+    connection["ready"] = true;
+
+    const message = {} as HomeAssistantMessage<any>;
+    connection.send(message);
+    
+    expect(ws!.send).toHaveBeenCalledTimes(1);
+    expect(ws!.send).toHaveBeenCalledWith(JSON.stringify({
+      id: 1
+    }));
   });
 });

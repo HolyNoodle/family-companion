@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "STORAGE_PATH=./tmp/db ts-node-dev --respawn --pretty --transpile-only src/index.ts",
     "build": "tsc",
-    "test": "jest --watch --coverage"
+    "test": "jest --coverage",
+    "test:dev": "jest --watch"
   },
   "keywords": [],
   "author": "",
