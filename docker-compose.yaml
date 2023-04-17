@@ -8,3 +8,4 @@ services:
       - 7000:7000
     volumes:
       - ./docker_data/app:/data
+      - ./:/app:ro

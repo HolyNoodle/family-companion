@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
 import * as fs from "fs/promises";
-import { AppState } from "../types";
+import { AppState } from "./types";
 
 const path = require("path");
 

@@ -2,7 +2,7 @@ import EventEmitter from "events";
 
 import parser from "cron-parser";
 import { v4 } from "uuid";
-import { Job, Task, WithId } from "@famcomp/common";
+import { Job, Task, WithId } from "../../types";
 
 export class JobScheduler extends EventEmitter {
   private taskIds: { [id: string]: NodeJS.Timeout } | undefined;
@@ -25,6 +25,8 @@ export class JobScheduler extends EventEmitter {
       Object.values(this.taskIds).forEach((timeout) => {
         clearTimeout(timeout);
       });
+
+    this.taskIds = {};
   }
 
   private startTask(task: WithId<Task>): NodeJS.Timeout {
@@ -63,3 +65,26 @@ export class JobScheduler extends EventEmitter {
     }, nextDate.getTime() - now.getTime());
   }
 }
+
+export const getExecutionDates = (
+  task: Task,
+  start: Date,
+  end: Date
+): Date[] => {
+  if (!start || !end) {
+    return [];
+  }
+
+  const dateGenerator = parser.parseExpression(task.cron, {
+    startDate: start,
+    endDate: end,
+  });
+
+  const dates = [];
+
+  while (dateGenerator.hasNext()) {
+    dates.push(dateGenerator.next().toDate());
+  }
+
+  return dates;
+};

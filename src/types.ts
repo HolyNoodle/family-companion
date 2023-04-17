@@ -1,3 +1,7 @@
+export interface AppState {
+  tasks: WithId<Task>[];
+}
+
 export interface Participation {
   person: string;
   description: string;

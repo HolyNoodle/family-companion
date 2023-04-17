@@ -1,31 +1,30 @@
-import * as dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { JobScheduler } from "./services/job";
-import { State } from "./services/state";
-import { Job, Task, WithId } from "@famcomp/common";
+import { JobScheduler, getExecutionDates } from "./domains/Job";
+import { State } from "./state";
+import { Job, Task, WithId } from "./types";
 import { v4 } from "uuid";
-import { NotificationServiceProxy } from "./services/notification";
-import { RuntimeEnv } from "./services/notification/types";
 
-dotenv.config();
-
-if (!process.env.PORT) {
-  console.error("Please specify a PORT variable in the .env file");
-  process.exit(1);
-}
+import { HomeAssistantConnection } from "./connection";
+import { HomeAssistantNotificationProvider } from "./domains/Notification";
 
 if (!process.env.STORAGE_PATH) {
-  console.error("Please specify a STORAGE_PATH variable in the .env file");
+  console.error(
+    "Please specify a STORAGE_PATH variable in the environment variables"
+  );
   process.exit(1);
 }
 
-const env = process.env.SUPERVISOR_TOKEN
-  ? RuntimeEnv.HomeAssistantAddOn
-  : RuntimeEnv.Application;
-const notification = NotificationServiceProxy.get(env);
+process.setUncaughtExceptionCaptureCallback((err) => {
+  console.log(err);
+  process.exit(1);
+});
 
+const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
+const notification = new HomeAssistantNotificationProvider(connection);
+
+console.log("token:", process.env.SUPERVISOR_TOKEN);
 if (!notification) {
   console.error("No notification service for this env");
 }
@@ -34,20 +33,22 @@ let taskScheduler: JobScheduler;
 const storagePath = process.env.STORAGE_PATH;
 State.setPath(storagePath);
 
-const PORT: number = parseInt(process.env.PORT as string, 10);
+const PORT: number = 7000;
 const app = express();
 
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
 
 app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}`);
 
-  await notification?.start();
+  console.log("Starting home assistant connection");
+  await connection.start();
+  console.log("Home assistant connection is ready");
 
   const state = await State.get();
+
   const startScheduler = (tasks: WithId<Task>[]) => {
     if (taskScheduler) {
       taskScheduler.stop();
@@ -151,9 +152,27 @@ app.listen(PORT, async () => {
     res.send(true);
   });
 
+  app.get("/schedule", (req, res) => {
+    const start = new Date();
+    const end = new Date();
+
+    end.setDate(start.getDate() + 7);
+    
+    const result = state.tasks.map((task) => {
+      return {
+        ...task,
+        schedule: getExecutionDates(task, start, end),
+      };
+    });
+
+    res.send(result);
+  });
+
   startScheduler(state.tasks);
 });
 
 app.on("close", () => {
+  console.log("Stopping family companion app");
   taskScheduler?.stop();
+  connection.stop();
 });
