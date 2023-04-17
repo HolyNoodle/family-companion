@@ -24,7 +24,6 @@ process.setUncaughtExceptionCaptureCallback((err) => {
 const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
 const notification = new HomeAssistantNotificationProvider(connection);
 
-console.log("token:", process.env.SUPERVISOR_TOKEN);
 if (!notification) {
   console.error("No notification service for this env");
 }
@@ -68,14 +67,15 @@ app.listen(PORT, async () => {
     res.send(state.tasks);
   });
 
-  app.post("/tasks/complete", (req, res) => {
-    if (!req.body.id) {
-      res.writeHead(400, "Id is required");
+  app.get("/tasks/action", (req, res) => {
+    console.log(req.query);
+    if (!req.query.taskId) {
+      res.writeHead(400, "Task Id is required");
       res.end();
       return;
     }
 
-    const index = state.tasks.findIndex((t) => t.id === req.body.id);
+    const index = state.tasks.findIndex((t) => t.id === req.query.taskId);
 
     if (index < 0) {
       res.writeHead(404, "Task not found");
@@ -85,7 +85,8 @@ app.listen(PORT, async () => {
 
     const task = state.tasks[index];
 
-    const jobIndex = task.jobs?.findIndex((j) => j.id === req.body.jobId) || -1;
+    const jobIndex =
+      task.jobs?.findIndex((j) => j.id === req.query.jobId) || -1;
 
     if (jobIndex < 0) {
       res.writeHead(404, "Job not found");
@@ -94,15 +95,27 @@ app.listen(PORT, async () => {
     }
 
     const job = task.jobs![jobIndex];
-    job.completionDate = new Date();
-    job.participations.push({
-      description: req.body.description,
-      person: req.body.person,
-    });
+
+    console.log(task.label, job)
+
+    switch (req.query.action) {
+      case "COMPLETE":
+        job.completionDate = new Date();
+        notification?.completeJob(task, job);
+      case "PARTICIPATE":
+        job.participations.push({
+          description: req.body.description,
+          person: req.body.person,
+        });
+        break;
+      case "CANCEL":
+        notification?.completeJob(task, job);
+        break;
+    }
 
     State.set(state);
 
-    notification?.completeJob(task, job);
+    res.writeHead(204).end();
   });
 
   app.post("/tasks", (req, res) => {
@@ -157,7 +170,7 @@ app.listen(PORT, async () => {
     const end = new Date();
 
     end.setDate(start.getDate() + 7);
-    
+
     const result = state.tasks.map((task) => {
       return {
         ...task,

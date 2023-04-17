@@ -1,11 +1,11 @@
 import { EventEmitter } from "stream";
-import { ErrorEvent, MessageEvent, WebSocket } from "ws";
+import { MessageEvent, WebSocket } from "ws";
 
 export interface HomeAssistantMessage<T> {
   id?: number;
   type: "call_service";
-  domain: "notification";
-  service: "notify.ALL_DEVICES";
+  domain: string;
+  service: string;
   service_data: T;
 }
 export type HomeAssistantResponse =
@@ -43,7 +43,11 @@ export class HomeAssistantConnection extends EventEmitter {
   }
 
   async start() {
-    this.ws = new WebSocket("ws://supervisor/core/websocket");
+    const url = process.env.SUPERVISOR_URL || "ws://supervisor/core/websocket";
+
+    console.log("Contacting Home Assistant instance", url);
+
+    this.ws = new WebSocket(url);
 
     let authPromiseResolver: Function;
     let authPromiseRejecter: Function;
@@ -55,7 +59,9 @@ export class HomeAssistantConnection extends EventEmitter {
 
     this.ws.onopen = () => {
       this.ws!.onmessage = (message: MessageEvent) => {
-        const event = JSON.parse(message.data.toString()) as HomeAssistantResponse;
+        const event = JSON.parse(
+          message.data.toString()
+        ) as HomeAssistantResponse;
         if (event.type === "auth_required") {
           console.log("Sending home assistant auth");
           this.ws!.send(
@@ -68,14 +74,16 @@ export class HomeAssistantConnection extends EventEmitter {
 
         if (event.type === "auth_ok") {
           console.log("Home assistant notification system is now ready");
+          this.ready = true;
           authPromiseResolver!();
         }
 
-        if(event.type === "auth_invalid") {
+        if (event.type === "auth_invalid") {
           authPromiseRejecter("Invalid auth");
         }
 
         if (event.type === "result") {
+          console.log("Received result", event);
           this.emit(event.id + "", event.result);
         }
       };

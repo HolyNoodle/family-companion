@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "STORAGE_PATH=./tmp/db ts-node-dev --respawn --pretty --transpile-only src/index.ts",
+    "dev": "ts-node-dev --respawn --pretty --transpile-only src/index.ts",
     "build": "tsc",
     "test": "jest --coverage",
     "test:dev": "jest --watch"

@@ -7,5 +7,5 @@ services:
     ports:
       - 7000:7000
     volumes:
-      - ./docker_data/app:/data
+      - ./docker_data:/data
       - ./:/app:ro
