@@ -16,11 +16,6 @@ if (!process.env.STORAGE_PATH) {
   process.exit(1);
 }
 
-process.setUncaughtExceptionCaptureCallback((err) => {
-  console.log(err);
-  process.exit(1);
-});
-
 const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
 const notification = new HomeAssistantNotificationProvider(connection);
 
@@ -64,7 +59,7 @@ app.listen(PORT, async () => {
   };
 
   app.get("/tasks", (_, res) => {
-    res.send(state.tasks);
+    res.send(state.tasks).end();
   });
 
   app.get("/tasks/action", (req, res) => {
@@ -95,8 +90,6 @@ app.listen(PORT, async () => {
     }
 
     const job = task.jobs![jobIndex];
-
-    console.log(task.label, job)
 
     switch (req.query.action) {
       case "COMPLETE":
@@ -139,7 +132,7 @@ app.listen(PORT, async () => {
 
     startScheduler(state.tasks);
 
-    res.send(task);
+    res.send(task).end();
   });
 
   app.delete("/tasks", (req, res) => {
@@ -162,7 +155,7 @@ app.listen(PORT, async () => {
     State.set(state);
     startScheduler(state.tasks);
 
-    res.send(true);
+    res.send(true).end();
   });
 
   app.get("/schedule", (req, res) => {
@@ -178,7 +171,7 @@ app.listen(PORT, async () => {
       };
     });
 
-    res.send(result);
+    res.send(result).end();
   });
 
   startScheduler(state.tasks);

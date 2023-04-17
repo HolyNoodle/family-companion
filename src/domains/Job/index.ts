@@ -5,10 +5,12 @@ import { v4 } from "uuid";
 import { Job, Task, WithId } from "../../types";
 
 export class JobScheduler extends EventEmitter {
-  private taskIds: { [id: string]: NodeJS.Timeout } | undefined;
+  private taskIds: { [id: string]: NodeJS.Timeout };
 
   constructor(private tasks: WithId<Task>[]) {
     super();
+
+    this.taskIds = {};
   }
 
   start() {
@@ -21,15 +23,18 @@ export class JobScheduler extends EventEmitter {
   }
 
   stop() {
-    this.taskIds &&
-      Object.values(this.taskIds).forEach((timeout) => {
-        clearTimeout(timeout);
-      });
+    Object.entries(this.taskIds).forEach((entry) => {
+      const [id, timeout] = entry;
+
+      console.log("Clear timeout for task", id);
+      clearTimeout(timeout);
+    });
 
     this.taskIds = {};
   }
 
   private startTask(task: WithId<Task>): NodeJS.Timeout {
+    console.log("Start task", task.id);
     const nextDate = parser
       .parseExpression(task.cron, {
         startDate: new Date(),
@@ -60,8 +65,7 @@ export class JobScheduler extends EventEmitter {
       task.jobs.splice(0, 0, job);
 
       this.emit("start_job", task, job);
-
-      this.startTask(task);
+      this.taskIds[task.id] = this.startTask(task);
     }, nextDate.getTime() - now.getTime());
   }
 }
