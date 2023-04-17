@@ -1,0 +1,44 @@
+{
+  "name": "@famcomp/client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.tsx",
+  "scripts": {
+    "start:dev": "webpack-cli serve --mode=development --env development --open --hot",
+    "build": "webpack --mode=production --env production --progress",
+    "lint": "eslint './src/**/*.{ts,tsx}'",
+    "lint:fix": "eslint './src/**/*.{ts,tsx}' --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@types/react": "^18.0.35",
+    "@types/react-dom": "^18.0.11",
+    "@types/webpack": "^5.28.1",
+    "@types/webpack-dev-server": "^4.7.2",
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "@typescript-eslint/parser": "^5.58.0",
+    "eslint": "^8.38.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "fork-ts-checker-webpack-plugin": "^8.0.0",
+    "html-webpack-plugin": "^5.5.1",
+    "prettier": "^2.8.7",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths-webpack-plugin": "^4.0.1",
+    "typescript": "^5.0.4",
+    "webpack": "^5.79.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.13.3"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
