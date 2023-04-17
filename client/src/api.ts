@@ -9,14 +9,26 @@ class API {
     return `http://${this.host}${path}`;
   }
   getTasks(): Promise<WithId<Task>[]> {
-    return fetch(this.buildURL("/tasks")).then((response) => {
-      return response.json();
-    });
+    return fetch(this.buildURL("/tasks"))
+      .then((response) => {
+        return response.json() as Promise<WithId<Task>[]>;
+      })
+      .then((json) => {
+        return json.map((task) => ({
+          ...task,
+          startDate: new Date(task.startDate),
+          endDate: task.endDate ? new Date(task.endDate) : undefined
+        }));
+      });
   }
-  pushTask(task: Task) {
+  pushTask(task: Task | WithId<Task>) {
     return fetch(this.buildURL("/tasks"), {
       method: "POST",
-      body: JSON.stringify({...task, lastUpdatedBy: "person.kevin"}),
+      body: JSON.stringify({
+        ...task,
+        startDate: task.startDate?.toISOString(),
+        lastUpdatedBy: "person.kevin"
+      }),
       headers: {
         "Content-type": "application/json"
       }
@@ -41,7 +53,7 @@ class API {
           (task) =>
             ({
               ...task,
-              schedule: task.schedule.map((date) => new Date(date))
+              schedule: task.schedule.map((date) => new Date(Date.parse(date as any)))
             } as JobSchedule)
         );
       });

@@ -1,20 +1,27 @@
 import React from "react";
-import {Form, Input, Button} from "antd";
-import {Task} from "src/types";
+import {Form, Input, Button, DatePicker} from "antd";
+import {Task, WithId} from "src/types";
+import dayjs from "dayjs";
 
 export interface TaskFormProps {
   submitting: boolean;
   onSubmit: (task: Task) => void;
+  task?: WithId<Task>;
 }
 
-const TaskForm = ({onSubmit, submitting}: TaskFormProps) => {
+const TaskForm = ({onSubmit, submitting, task}: TaskFormProps) => {
   return (
     <Form
       name="basic"
       labelCol={{span: 8}}
       wrapperCol={{span: 16}}
       style={{maxWidth: 600}}
-      initialValues={{cron: "0 */30 * * * *"}}
+      initialValues={{
+        startDate: dayjs(task?.startDate || new Date()),
+        label: task?.label,
+        description: task?.description,
+        cron: task?.cron || "0 */30 * * * *"
+      }}
       onFinish={onSubmit}
       autoComplete="off"
     >
@@ -24,6 +31,10 @@ const TaskForm = ({onSubmit, submitting}: TaskFormProps) => {
         rules={[{required: true, message: "Please input a label for the task"}]}
       >
         <Input />
+      </Form.Item>
+
+      <Form.Item label="Date" name="startDate">
+        <DatePicker showTime={{format: "HH:mm"}} />
       </Form.Item>
 
       <Form.Item label="Description" name="description">
@@ -40,7 +51,7 @@ const TaskForm = ({onSubmit, submitting}: TaskFormProps) => {
 
       <Form.Item wrapperCol={{offset: 8, span: 16}}>
         <Button type="primary" htmlType="submit" loading={submitting} disabled={submitting}>
-          Create
+          {task?.id ? "Edit" : "Create"}
         </Button>
       </Form.Item>
     </Form>

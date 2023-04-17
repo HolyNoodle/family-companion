@@ -172,6 +172,8 @@ app.listen(PORT, async () => {
     const startDate = start? new Date(start as string) : new Date();
     const endDate = end? new Date(end as string) : new Date();
 
+    console.log("schedule", start, end);
+
     const result = state.tasks.map((task) => {
       return {
         ...task,

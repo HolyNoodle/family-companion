@@ -84,8 +84,8 @@ export const getExecutionDates = (
   }
 
   const dateGenerator = parser.parseExpression(task.cron, {
-    startDate: start,
     endDate: end,
+    currentDate: new Date(start.getTime() - 1),
   });
 
   const dates = [];

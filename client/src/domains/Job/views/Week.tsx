@@ -1,7 +1,7 @@
 import {useMemo} from "react";
 import api from "src/api";
 import {useAPIData} from "src/utils";
-import Day from "../components/Day";
+import Day from "./Day";
 import React from "react";
 
 const Week = () => {
@@ -19,10 +19,6 @@ const Week = () => {
   const endWeek = new Date(startWeek);
   endWeek.setDate(endWeek.getDate() + 7);
 
-  const {
-    state: {data = []}
-  } = useAPIData(api.getSchedule, startWeek, endWeek);
-
   const days = useMemo(() => {
     return Array.from({length: 7}, (_, i) => i).map((i: number) => {
       const day = new Date(startWeek);
@@ -34,7 +30,7 @@ const Week = () => {
   return (
     <>
       {days.map((date) => (
-        <Day key={date.toISOString()} events={data} date={date} />
+        <Day key={date.toISOString()} date={date} />
       ))}
     </>
   );
