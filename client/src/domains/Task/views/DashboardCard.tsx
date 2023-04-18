@@ -40,10 +40,10 @@ const DashboardCard = () => {
           </li>
         ))}
       </ul>
-      {!selectedTask && <TaskForm onSubmit={handleFormSubmit} submitting={submitting} />}
+      {/* {!selectedTask && <TaskForm onSubmit={handleFormSubmit} submitting={submitting} />}
       {selectedTask && (
         <TaskForm onSubmit={handleFormSubmit} submitting={submitting} task={selectedTask} />
-      )}
+      )} */}
     </>
   );
 };

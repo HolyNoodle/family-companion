@@ -17,6 +17,7 @@
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
+    "@types/styled-components": "^5.1.26",
     "@types/webpack": "^5.28.1",
     "@types/webpack-dev-server": "^4.7.2",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
@@ -43,7 +44,8 @@
     "antd": "^5.4.2",
     "dayjs": "^1.11.7",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "styled-components": "^5.3.9"
   },
   "jest": {
     "transformIgnorePatterns": [
