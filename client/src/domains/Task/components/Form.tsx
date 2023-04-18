@@ -1,35 +1,69 @@
-import React, {useEffect, useState} from "react";
-import {Form, Input, Button, DatePicker, Modal, FormInstance} from "antd";
+import React, {useEffect, useMemo, useState} from "react";
+import {Form, Input, DatePicker, Modal} from "antd";
 import {Task, WithId} from "src/types";
 import dayjs from "dayjs";
+import {parse} from "@datasert/cronjs-parser";
+import {getFutureMatches} from "@datasert/cronjs-matcher";
 
 export interface TaskFormProps {
   submitting: boolean;
   onSubmit: (task: Task) => void;
   onClose: () => void;
-  task?: WithId<Task>;
+  task?: Partial<WithId<Task>>;
   open?: boolean;
 }
 
+const generateCronString = (date: Date): string => {
+  const day = date.getUTCDate();
+  const month = date.getUTCMonth() + 1;
+  const hour = date.getUTCHours();
+  const minute = date.getUTCMinutes();
+  const year = date.getUTCFullYear();
+
+  return `${minute} ${hour} ${day} ${month} ? ${year}`;
+};
+
 const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormProps) => {
-  const [formRef, setFormRef] = useState<FormInstance<Task>>();
+  const [form] = Form.useForm();
+  const [nextIterations, setNextIterations] = useState<Date[]>([]);
 
   useEffect(() => {
-    formRef?.resetFields();
-  }, [formRef, task]);
-  
+    form.resetFields();
+    task?.startDate && handleCronChange(task.cron || generateCronString(task.startDate));
+  }, [task]);
+
+  const handleStartDateChange = (startDate: dayjs.Dayjs) => {
+    const cron = generateCronString(startDate.toDate());
+    form.setFieldsValue({
+      cron,
+      startDate
+    });
+    handleCronChange(cron);
+  };
+
+  const handleCronChange = (cron: string) => {
+    try {
+      const nextIterations = getFutureMatches(cron).map((d) => new Date(d));
+      setNextIterations(nextIterations);
+      form.setFieldValue("cron", cron);
+    } catch (ex) {
+      console.error(ex);
+      return [];
+    }
+  };
+
   return (
     <Form
-      ref={setFormRef}
+      form={form}
       name="basic"
       labelCol={{span: 8}}
       wrapperCol={{span: 16}}
       style={{maxWidth: 600}}
       initialValues={{
-        startDate: dayjs(task?.startDate || new Date()),
+        startDate: dayjs(task?.startDate),
         label: task?.label,
         description: task?.description,
-        cron: task?.cron || "0 */30 * * * *"
+        cron: task?.cron || (task?.startDate && generateCronString(task?.startDate)) || undefined
       }}
       onFinish={onSubmit}
       autoComplete="off"
@@ -42,7 +76,7 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
           disabled: submitting
         }}
         onCancel={onClose}
-        onOk={formRef?.submit}
+        onOk={form.submit}
       >
         <Form.Item
           label="Label"
@@ -53,7 +87,7 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
         </Form.Item>
 
         <Form.Item label="Date" name="startDate">
-          <DatePicker showTime={{format: "HH:mm"}} />
+          <DatePicker showTime={{format: "HH:mm"}} onChange={handleStartDateChange} />
         </Form.Item>
 
         <Form.Item label="Description" name="description">
@@ -63,9 +97,34 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
         <Form.Item
           label="Cron string"
           name="cron"
-          rules={[{required: true, message: "Please input a cron string"}]}
+          help={
+            <div>
+              Next iterations:{" "}
+              <ul>
+                {nextIterations.map((d) => (
+                  <li>{d.toISOString()}</li>
+                ))}
+              </ul>
+            </div>
+          }
+          rules={[
+            {required: true, message: "Please input a cron string"},
+            {
+              validator(_, value) {
+                return new Promise<void>((resolve, reject) => {
+                  try {
+                    parse(value);
+                    resolve();
+                  } catch (ex) {
+                    console.error(ex);
+                    reject("INVALID_CRON");
+                  }
+                });
+              }
+            }
+          ]}
         >
-          <Input />
+          <Input onChange={(e) => handleCronChange(e.target.value)} />
         </Form.Item>
       </Modal>
     </Form>

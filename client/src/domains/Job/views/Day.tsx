@@ -12,13 +12,13 @@ export interface DayProps {
   date: Date;
 }
 
-const Event = styled.div<{position: number}>`
+const Event = styled.div<{position: number; overlap: number; index: number}>`
   z-index: 1;
   position: absolute;
   top: calc(${({position}) => position}% - 1em);
   height: 2em;
-  width: 94%;
-  left: 3%;
+  width: ${({overlap}) => 94 / overlap}%;
+  left: ${({index, overlap}) => 3 + (index * (94 / overlap))}%;
 `;
 
 const Day = ({date}: DayProps) => {
@@ -70,6 +70,7 @@ const Day = ({date}: DayProps) => {
 
   const [selectedEvent, setSelectedEvent] = useState<EventItem>();
   const [submitting, setSubmitting] = useState(false);
+  const [newTask, setNewTask] = useState<Date>();
 
   const handleFormSubmit = async (task: Task) => {
     setSubmitting(true);
@@ -79,6 +80,7 @@ const Day = ({date}: DayProps) => {
 
       invalidate();
       setSelectedEvent(undefined);
+      setNewTask(undefined);
     } finally {
       setSubmitting(false);
     }
@@ -87,22 +89,38 @@ const Day = ({date}: DayProps) => {
   return (
     <DayContainer date={date}>
       <TaskForm
-        open={!!selectedEvent}
+        open={!!newTask}
+        task={{startDate: newTask}}
         submitting={submitting}
-        task={selectedEvent?.task}
         onSubmit={handleFormSubmit}
-        onClose={() => setSelectedEvent(undefined)}
+        onClose={() => setNewTask(undefined)}
       />
+
       <>
-        <Scale mode="separator" />
+        <Scale date={date} mode="separator" onClick={(date) => setNewTask(date)} />
         {computedEvents
           .sort((a, b) => a.date.getTime() - b.date.getTime())
           .map((schedule, i) => {
             const position =
               (schedule.date.getHours() / 24 + schedule.date.getMinutes() / 1440) * 100;
 
+            const overlaps = computedEvents.filter((s) => {
+              const min = schedule.date.getTime() - 1800 * 1000;
+              const max = schedule.date.getTime() + 1800 * 1000;
+
+              return s.date.getTime() >= min && s.date.getTime() <= max;
+            });
+            const number = overlaps.length;
+            const index = overlaps.findIndex(s => s === schedule);
+
             return (
-              <Event key={i} position={position} onClick={() => setSelectedEvent(schedule)}>
+              <Event
+                key={i}
+                index={index}
+                position={position}
+                onClick={() => setSelectedEvent(schedule)}
+                overlap={number}
+              >
                 <EventCard event={schedule} />
               </Event>
             );

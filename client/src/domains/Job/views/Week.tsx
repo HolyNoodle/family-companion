@@ -8,7 +8,7 @@ const WeekContainer = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  height: 150%;
+  height: 125%;
   overflow-y: auto;
   scroll-behavior: smooth;
 `;

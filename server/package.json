@@ -13,9 +13,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ejs": "^3.1.9",
+    "@datasert/cronjs-matcher": "^1.2.0",
     "cors": "^2.8.5",
-    "cron-parser": "^4.8.1",
+    "ejs": "^3.1.9",
     "express": "^4.18.2",
     "helmet": "^6.1.5",
     "uuid": "^9.0.0",

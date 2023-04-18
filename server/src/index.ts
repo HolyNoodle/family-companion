@@ -8,7 +8,6 @@ import { v4 } from "uuid";
 
 import { HomeAssistantConnection } from "./connection";
 import { HomeAssistantNotificationProvider } from "./domains/Notification";
-import path from "path";
 
 if (!process.env.STORAGE_PATH) {
   console.error(

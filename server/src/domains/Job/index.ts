@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 
-import parser from "cron-parser";
+import { getFutureMatches } from "@datasert/cronjs-matcher";
 import { v4 } from "uuid";
 import { Job, Task, WithId } from "../../types";
 
@@ -37,13 +37,14 @@ export class JobScheduler extends EventEmitter {
     this.taskIds = {};
   }
 
-  private startTask(task: WithId<Task>): NodeJS.Timeout {
-    console.log("Start task", task.id);
-    const nextDate = parser
-      .parseExpression(task.cron, {
-        startDate: new Date(),
-      })
-      .next();
+  private startTask(task: WithId<Task>): NodeJS.Timeout | undefined {
+    const nextDateString = getFutureMatches(task.cron, { matchCount: 1 }).pop();
+
+    if (!nextDateString) {
+      return undefined;
+    }
+
+    const nextDate = new Date(nextDateString);
     const now = new Date();
 
     console.log(
@@ -62,14 +63,17 @@ export class JobScheduler extends EventEmitter {
 
       const job: WithId<Job> = {
         id: v4(),
-        date: nextDate.toDate(),
+        date: nextDate,
         participations: [],
       };
 
       task.jobs.splice(0, 0, job);
 
       this.emit("start_job", task, job);
-      this.taskIds[task.id] = this.startTask(task);
+
+      const timer = this.startTask(task);
+
+      if (timer) this.taskIds[task.id] = timer;
     }, nextDate.getTime() - now.getTime());
   }
 }
@@ -83,16 +87,13 @@ export const getExecutionDates = (
     return [];
   }
 
-  const dateGenerator = parser.parseExpression(task.cron, {
-    endDate: end,
-    currentDate: new Date(start.getTime() - 1),
-  });
-
-  const dates = [];
-
-  while (dateGenerator.hasNext()) {
-    dates.push(dateGenerator.next().toDate());
+  try {
+    return getFutureMatches(task.cron, {
+      matchCount: 100,
+      endAt: end.toISOString(),
+      startAt: new Date(start.getTime() - 1).toISOString(),
+    }).map((d) => new Date(d));
+  } catch {
+    return [];
   }
-
-  return dates;
 };

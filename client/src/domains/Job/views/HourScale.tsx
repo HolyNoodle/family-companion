@@ -9,7 +9,7 @@ const HourScale = () => {
 
   return (
     <DayContainer date={time} header={false}>
-      <Scale mode="hour" />
+      <Scale date={time} mode="hour" />
     </DayContainer>
   );
 };

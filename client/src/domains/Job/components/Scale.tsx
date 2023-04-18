@@ -1,9 +1,10 @@
-import React from "react";
+import React, {MouseEventHandler, useMemo} from "react";
 import styled from "styled-components";
 import dayjs from "dayjs";
 
 const ScaleContainer = styled.div`
   flex: 1;
+  height: 100%;
 `;
 const Hour = styled.div<{position: number}>`
   z-index: 0;
@@ -29,15 +30,36 @@ const Hour = styled.div<{position: number}>`
 
 export interface HourScaleProps {
   mode: "separator" | "hour";
+  date: Date;
+  onClick?: (date: Date) => void;
 }
 
-const Scale = ({mode}: HourScaleProps) => {
-  const time = new Date();
-  time.setHours(0);
-  time.setMinutes(0);
+const Scale = ({date, mode, onClick}: HourScaleProps) => {
+  const time = useMemo(() => {
+    const time = new Date(date);
+    time.setHours(0);
+    time.setMinutes(0);
+
+    return time;
+  }, [date]);
+
+  const handleScaleClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (!onClick) {
+      return;
+    }
+
+    const rect = (event.target as HTMLDivElement).getBoundingClientRect();
+    const timeInMinutes = ((event.clientY - rect.top) / rect.height) * 1440;
+
+    const date = new Date(time);
+    date.setHours(timeInMinutes / 60);
+    date.setMinutes(timeInMinutes % 60);
+
+    onClick(date);
+  };
 
   return (
-    <ScaleContainer>
+    <ScaleContainer onClick={handleScaleClick}>
       {Array.from({length: 24}, (_, i) => i).map((i: number) => {
         time.setHours(i);
 

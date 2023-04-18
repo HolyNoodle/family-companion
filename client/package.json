@@ -13,13 +13,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/antd": "^1.0.0",
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "^5.1.26",
     "@types/webpack": "^5.28.1",
-    "@types/webpack-dev-server": "^4.7.2",
     "@typescript-eslint/eslint-plugin": "^5.58.0",
     "@typescript-eslint/parser": "^5.58.0",
     "css-loader": "^6.7.3",
@@ -41,6 +39,8 @@
     "webpack-dev-server": "^4.13.3"
   },
   "dependencies": {
+    "@datasert/cronjs-matcher": "^1.2.0",
+    "@datasert/cronjs-parser": "^1.2.0",
     "antd": "^5.4.2",
     "dayjs": "^1.11.7",
     "react": "^18.2.0",

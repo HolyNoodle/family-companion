@@ -1,12 +1,12 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@datasert/cronjs-matcher':
+    specifier: ^1.2.0
+    version: 1.2.0
   cors:
     specifier: ^2.8.5
     version: 2.8.5
-  cron-parser:
-    specifier: ^4.8.1
-    version: 4.8.1
   ejs:
     specifier: ^3.1.9
     version: 3.1.9
@@ -419,6 +419,17 @@ packages:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
+
+  /@datasert/cronjs-matcher@1.2.0:
+    resolution: {integrity: sha512-ht6Vwwa3qssMn/9bphypjG/U8w0DV3GtTS2C6kbAy39rerQFTRzmml9xZNlot1K13gm9K/EEq3DLPEOsH++ICw==}
+    dependencies:
+      '@datasert/cronjs-parser': 1.2.0
+      luxon: 2.5.2
+    dev: false
+
+  /@datasert/cronjs-parser@1.2.0:
+    resolution: {integrity: sha512-7kzYh7F5V3ElX+k3W9w6SKS6WdjqJQ2gIY1y0evldnjAwZxnFzR/Yu9Mv9OeDaCQX+mGAq2MvEnJbwu9oj3CXQ==}
+    dev: false
 
   /@eslint/eslintrc@0.4.3:
     resolution: {integrity: sha512-J6KFFz5QCYUJq3pf0mjEcCJVERbzv71PUIDczuh9JkwGEzced6CO5ADLHB1rbf/+oPBtoPfMYNOpGDzCANlbXw==}
@@ -1339,13 +1350,6 @@ packages:
   /create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
     dev: true
-
-  /cron-parser@4.8.1:
-    resolution: {integrity: sha512-jbokKWGcyU4gl6jAfX97E1gDpY12DJ1cLJZmoDzaAln/shZ+S3KBFBuA2Q6WeUN4gJf/8klnV1EfvhA2lK5IRQ==}
-    engines: {node: '>=12.0.0'}
-    dependencies:
-      luxon: 3.3.0
-    dev: false
 
   /cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -2560,8 +2564,8 @@ packages:
       yallist: 4.0.0
     dev: true
 
-  /luxon@3.3.0:
-    resolution: {integrity: sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==}
+  /luxon@2.5.2:
+    resolution: {integrity: sha512-Yg7/RDp4nedqmLgyH0LwgGRvMEKVzKbUdkBYyCosbHgJ+kaOUx0qzSiSatVc3DFygnirTPYnMM2P5dg2uH1WvA==}
     engines: {node: '>=12'}
     dev: false
 
