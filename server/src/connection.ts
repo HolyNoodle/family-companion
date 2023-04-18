@@ -1,13 +1,17 @@
 import { EventEmitter } from "stream";
 import { MessageEvent, WebSocket } from "ws";
+import { Person, WithId } from "./types";
 
-export interface HomeAssistantMessage<T> {
-  id?: number;
-  type: "call_service";
-  domain: string;
-  service: string;
-  service_data: T;
-}
+export type HomeAssistantMessage<T> =
+  | {
+      type: "call_service";
+      domain: string;
+      service: string;
+      service_data: T;
+    }
+  | {
+      type: "get_states";
+    };
 export type HomeAssistantResponse =
   | {
       id: number;
@@ -27,6 +31,12 @@ export type NotificationInfo =
   | {
       message: "clear_notification";
     };
+
+export interface EntityState {
+  entity_id: string;
+  attributes: any;
+  state: any;
+}
 
 export class HomeAssistantConnection extends EventEmitter {
   private ws?: WebSocket;
@@ -83,7 +93,7 @@ export class HomeAssistantConnection extends EventEmitter {
         }
 
         if (event.type === "result") {
-          console.log("Received result", event);
+          // console.log("Received result", event);
           this.emit(event.id + "", event.result);
         }
       };
@@ -92,20 +102,46 @@ export class HomeAssistantConnection extends EventEmitter {
     return promise;
   }
 
-  send(message: HomeAssistantMessage<any>) {
+  send<T = unknown>(message: HomeAssistantMessage<any>): Promise<T> {
     if (!this.ready) {
       return Promise.reject("Home assistant connection not ready yet.");
     }
 
-    if (!message.id) {
-      this.lastId++;
-      message.id = this.lastId;
-    }
+    this.lastId++;
+    const idMessage: WithId<HomeAssistantMessage<any>, number> = {
+      ...message,
+      id: this.lastId,
+    };
 
-    this.ws!.send(JSON.stringify(message));
+    this.ws!.send(JSON.stringify(idMessage));
 
     return new Promise((resolve) => {
-      this.once(message.id + "", resolve);
+      this.once(idMessage.id + "", resolve);
     });
+  }
+
+  getStates(type?: "person") {
+    return this.send<EntityState[]>({
+      type: "get_states",
+    }).then((states) => {
+      return type
+        ? states.filter((entityState) => {
+            return entityState.entity_id.startsWith(type);
+          })
+        : states;
+    });
+  }
+
+  async getPersons() {
+    const entities = await this.getStates("person");
+
+    return entities.map(
+      (entity) =>
+        ({
+          id: entity.entity_id,
+          name: entity.attributes.friendly_name,
+          device: entity.attributes.source?.split(".")[1],
+        } as Person)
+    );
   }
 }

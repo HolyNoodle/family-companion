@@ -29,6 +29,12 @@ export interface Job {
   participations: Participation[];
 }
 
-export type WithId<T> = T & {
-  id: string;
+export type WithId<T, U = string> = T & {
+  id: U;
 };
+
+export interface Person {
+  id: string;
+  name: string;
+  device?: string;
+}

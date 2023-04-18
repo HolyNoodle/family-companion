@@ -99,10 +99,16 @@ app.listen(PORT, async () => {
         job.completionDate = new Date();
         notification?.completeJob(task, job);
       case "PARTICIPATE":
-        job.participations.push({
-          description: req.body.description,
-          person: req.body.person,
-        });
+        if (
+          !job.participations.some(
+            (participation) => participation.person === req.query.person
+          )
+        ) {
+          job.participations.push({
+            description: req.body.description,
+            person: req.query.person as string,
+          });
+        }
         break;
       case "CANCEL":
         notification?.completeJob(task, job);
@@ -169,8 +175,8 @@ app.listen(PORT, async () => {
 
   app.get("/schedule", (req, res) => {
     const { start, end } = req.query;
-    const startDate = start? new Date(start as string) : new Date();
-    const endDate = end? new Date(end as string) : new Date();
+    const startDate = start ? new Date(start as string) : new Date();
+    const endDate = end ? new Date(end as string) : new Date();
 
     console.log("schedule", start, end);
 
@@ -182,6 +188,29 @@ app.listen(PORT, async () => {
     });
 
     res.send(result).end();
+  });
+
+  app.get("/stats", async (req, res) => {
+    const persons = await connection.getPersons();
+
+    type Stats = {
+      [person: string]: {
+        [task: string]: number;
+      };
+    };
+    const personMap = state.tasks.reduce((map, task) => {
+      task.jobs?.forEach((job) => {
+        job.participations.forEach((participation) => {
+          map[participation.person] = {
+            ...(map[participation.person] || {}),
+            [task.id]: (map[participation.person][task.id] || 0) + 1,
+          };
+        });
+      });
+      return map;
+    }, {} as Stats);
+
+    res.send(personMap).end();
   });
 
   startScheduler(state.tasks);
