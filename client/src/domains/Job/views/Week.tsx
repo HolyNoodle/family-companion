@@ -1,8 +1,12 @@
-import {useMemo} from "react";
-import Day from "./Day";
-import React from "react";
+import React, {useEffect, useMemo} from "react";
+import {useSelector} from "react-redux";
 import styled from "styled-components";
+
+import {useAppDispatch} from "src/store";
+
+import Day from "./Day";
 import Scale from "./HourScale";
+import {fetchTasks, selectAllTasks, selectTasksStatus} from "src/domains/Task/state";
 
 const WeekContainer = styled.div`
   display: flex;
@@ -14,6 +18,18 @@ const WeekContainer = styled.div`
 `;
 
 const Week = () => {
+  const tasks = useSelector(selectAllTasks);
+  const taskStatus = useSelector(selectTasksStatus);
+  const dispatch = useAppDispatch();
+
+  console.log(taskStatus, tasks);
+
+  useEffect(() => {
+    if (taskStatus === "idle") {
+      dispatch(fetchTasks());
+    }
+  }, [taskStatus]);
+
   const startWeek = useMemo(() => {
     const now = new Date();
 

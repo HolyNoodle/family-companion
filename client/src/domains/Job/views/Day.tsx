@@ -1,5 +1,7 @@
 import React, {useMemo, useState} from "react";
 import styled from "styled-components";
+import {useSelector} from "react-redux";
+
 import api from "src/api";
 import {useAPIData} from "src/utils";
 import DayContainer from "../components/DayContainer";
@@ -7,6 +9,7 @@ import Scale from "../components/Scale";
 import EventCard, {EventItem} from "../components/Event";
 import TaskForm from "src/domains/Task/components/Form";
 import {Task} from "src/types";
+import { selectAllTasks } from "src/domains/Task/state";
 
 export interface DayProps {
   date: Date;
@@ -34,6 +37,8 @@ const Day = ({date}: DayProps) => {
   }, []);
   const endDay = new Date(startDay);
   endDay.setDate(endDay.getDate() + 1);
+
+  const tasks = useSelector(selectAllTasks);
 
   const {
     state: {data = []},
