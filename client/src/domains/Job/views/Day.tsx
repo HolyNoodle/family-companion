@@ -10,7 +10,7 @@ import EventCard, {EventItem} from "../components/Event";
 import TaskForm from "src/domains/Task/components/Form";
 import {Task} from "src/types";
 import {fetchTasks, selectAllTasks} from "src/domains/Task/state";
-import { useAppDispatch } from "src/store";
+import {useAppDispatch} from "src/store";
 
 export interface DayProps {
   date: Date;
@@ -52,7 +52,9 @@ const Day = ({date}: DayProps) => {
 
         return {
           ...task,
-          schedule: nextIterations.map((d) => new Date(d))
+          schedule: nextIterations
+            .map((d) => new Date(d))
+            .filter((d) => d.getTime() >= task.startDate.getTime())
         };
       })
       .filter((schedule) => {
@@ -116,12 +118,7 @@ const Day = ({date}: DayProps) => {
             const index = overlaps.findIndex((s) => s === schedule);
 
             return (
-              <Event
-                key={i}
-                index={index}
-                position={position}
-                overlap={number}
-              >
+              <Event key={i} index={index} position={position} overlap={number}>
                 <EventCard event={schedule} />
               </Event>
             );
