@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import {JobSchedule, Task, WithId} from "./types";
 
 class API {
@@ -16,8 +17,8 @@ class API {
       .then((json) => {
         return json.map((task) => ({
           ...task,
-          startDate: new Date(task.startDate),
-          endDate: task.endDate ? new Date(task.endDate) : undefined
+          startDate: dayjs(task.startDate),
+          endDate: task.endDate ? dayjs(task.endDate) : undefined
         }));
       });
   }
@@ -53,7 +54,7 @@ class API {
           (task) =>
             ({
               ...task,
-              schedule: task.schedule.map((date) => new Date(Date.parse(date as any)))
+              schedule: task.schedule.map((date) => dayjs(date))
             } as JobSchedule)
         );
       });

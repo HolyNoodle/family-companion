@@ -1,6 +1,7 @@
 import {createSlice, createAsyncThunk, createEntityAdapter, EntityState} from "@reduxjs/toolkit";
+import dayjs from "dayjs";
 import api from "src/api";
-import { RootState } from "src/store";
+import {RootState} from "src/store";
 import {Task, WithId} from "src/types";
 
 export interface TaskState extends EntityState<WithId<Task>> {
@@ -13,7 +14,7 @@ export const initialState: Partial<TaskState> = {
 
 const taskAdapter = createEntityAdapter<WithId<Task>>({
   selectId: (item) => item.id,
-  sortComparer: (a, b) => a.startDate.getTime() - b.startDate.getTime()
+  sortComparer: (a, b) => a.startDate.utcOffset() - b.startDate.utcOffset()
 });
 
 const tasksSlice = createSlice({
@@ -40,13 +41,14 @@ export const fetchTasks = createAsyncThunk("tasks/fetch", async () => {
 
   return rawTasks.map((rawTask) => ({
     ...rawTask,
-    startDate: new Date(rawTask.startDate)
+    startDate: dayjs(rawTask.startDate),
+    jobs: rawTask.jobs?.map((j) => ({...j, date: dayjs(j.date)}))
   }));
 });
 
 export default tasksSlice;
 
-const tasksSelectors = taskAdapter.getSelectors<RootState>(state => state.tasks);
+const tasksSelectors = taskAdapter.getSelectors<RootState>((state) => state.tasks);
 
 export const selectAllTasks = tasksSelectors.selectAll;
 export const selectTasksStatus = (state: RootState) => state.tasks.status || "idle";

@@ -13,7 +13,7 @@ const createTask = (id = "123"): WithId<Task> =>
 describe("getExecutionDates", () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(Date.UTC(2023, 0, 1, 9, 12, 25, 345));
+    jest.setSystemTime(Date.UTC(2023, 0, 1, 9, 12, 25, 346));
   });
 
   afterEach(() => {
@@ -58,14 +58,14 @@ describe("getExecutionDates", () => {
     const startDate = new Date();
     const endDate = new Date();
 
-    endDate.setSeconds(startDate.getSeconds() + 30);
+    endDate.setMinutes(startDate.getMinutes() + 30);
     const result = getExecutionDates(createTask(), startDate, endDate);
 
     expect(result).toHaveLength(3);
     expect(result.map((d) => d.toISOString())).toStrictEqual([
-      "2023-01-01T09:12:30.000Z",
-      "2023-01-01T09:12:40.000Z",
-      "2023-01-01T09:12:50.000Z",
+      "2023-01-01T09:20:00.000Z",
+      "2023-01-01T09:30:00.000Z",
+      "2023-01-01T09:40:00.000Z",
     ]);
   });
 });
@@ -76,7 +76,7 @@ describe("JobScheduler", () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(Date.UTC(2023, 0, 1, 9, 12, 25, 345));
+    jest.setSystemTime(Date.UTC(2023, 0, 1, 9, 12, 25, 456));
 
     setTimeoutSpy = jest
       .spyOn(global, "setTimeout")
@@ -102,7 +102,8 @@ describe("JobScheduler", () => {
     scheduler.start();
 
     expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
-    expect(setTimeoutSpy.mock.calls[0][1]).toBe(4655); // see fake time in before each to calculate this value (30 seconds - 25 seconds and 345 ms)
+    expect(setTimeoutSpy.mock.calls[0][1]).toBe(7 * 60 * 1000 + 34 * 1000 + 544); 
+    // see fake time in before each to calculate this value (7 minutes and 35 seconds in milliseconds)
 
     expect(scheduler["taskIds"]).toStrictEqual({
       test123: "timer",
@@ -145,7 +146,7 @@ describe("JobScheduler", () => {
       ...task,
       jobs: [
         {
-          date: new Date("2023-01-01T09:12:30.000Z"),
+          date: new Date("2023-01-01T09:20:00.000Z"),
           id: "123456789",
           participations: [],
         },

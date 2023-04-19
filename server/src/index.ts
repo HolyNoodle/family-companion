@@ -45,53 +45,50 @@ app.listen(PORT, async () => {
 
   const state = await State.get();
 
-  const startScheduler = (tasks: WithId<Task>[]) => {
-    if (taskScheduler) {
-      taskScheduler.stop();
-    }
+  taskScheduler = new JobScheduler(state.tasks);
 
-    taskScheduler = new JobScheduler(tasks);
+  taskScheduler.on("start_job", (task: WithId<Task>, job: WithId<Job>) => {
+    console.log("scheduler start job");
+    notification.createJob(task, job);
 
-    taskScheduler.on("start_job", (task: WithId<Task>, job: WithId<Job>) => {
-      notification?.createJob(task, job);
-      State.set(state);
-    });
-
-    taskScheduler.start();
-  };
+    State.set(state);
+  });
 
   app.get("/tasks", (_, res) => {
     res.send(state.tasks).end();
   });
 
-  app.get("/tasks/action", (req, res) => {
+  app.get("/tasks/action", async (req, res) => {
     console.log(req.query);
     if (!req.query.taskId) {
+      console.log("no id");
       res.writeHead(400, "Task Id is required");
       res.end();
       return;
     }
+    const state = await State.get();
 
-    const index = state.tasks.findIndex((t) => t.id === req.query.taskId);
+    const task = state.tasks.find((t) => t.id === req.query.taskId);
 
-    if (index < 0) {
+    if (!task) {
+      console.log("no task");
+
       res.writeHead(404, "Task not found");
       res.end();
       return;
     }
 
-    const task = state.tasks[index];
+    console.log(task.jobs);
 
-    const jobIndex =
-      task.jobs?.findIndex((j) => j.id === req.query.jobId) || -1;
+    const job = task.jobs?.find((j) => j.id === req.query.jobId);
 
-    if (jobIndex < 0) {
+    if (!job) {
+      console.log("no job");
+
       res.writeHead(404, "Job not found");
       res.end();
       return;
     }
-
-    const job = task.jobs![jobIndex];
 
     switch (req.query.action) {
       case "COMPLETE":
@@ -116,7 +113,7 @@ app.listen(PORT, async () => {
 
     State.set(state);
 
-    res.writeHead(204).end();
+    res.send(true).end();
   });
 
   app.post("/tasks", (req, res) => {
@@ -144,7 +141,7 @@ app.listen(PORT, async () => {
 
     State.set(state);
 
-    startScheduler(state.tasks);
+    taskScheduler.update(req.body.id! as string);
 
     res.send(task).end();
   });
@@ -167,7 +164,8 @@ app.listen(PORT, async () => {
     state.tasks.splice(index, 1);
 
     State.set(state);
-    startScheduler(state.tasks);
+
+    taskScheduler.update(req.query.id! as string);
 
     res.send(true).end();
   });
@@ -210,7 +208,7 @@ app.listen(PORT, async () => {
     res.send(personMap).end();
   });
 
-  startScheduler(state.tasks);
+  taskScheduler.start();
 });
 
 app.on("close", () => {

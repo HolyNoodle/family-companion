@@ -1,16 +1,17 @@
 import React, {useMemo, useState} from "react";
 import styled from "styled-components";
 import {useSelector} from "react-redux";
-import {getFutureMatches} from "@datasert/cronjs-matcher";
 
 import api from "src/api";
 import DayContainer from "../components/DayContainer";
 import Scale from "../components/Scale";
-import EventCard, {EventItem} from "../components/Event";
+import EventCard from "../components/Event";
 import TaskForm from "src/domains/Task/components/Form";
 import {Task} from "src/types";
 import {fetchTasks, selectAllTasks} from "src/domains/Task/state";
 import {useAppDispatch} from "src/store";
+import { useEvents } from "../utils";
+import dayjs from "dayjs";
 
 export interface DayProps {
   date: Date;
@@ -41,39 +42,10 @@ const Day = ({date}: DayProps) => {
 
   const tasks = useSelector(selectAllTasks);
 
-  const computedEvents = useMemo(() => {
-    return tasks
-      .map((task) => {
-        const nextIterations = getFutureMatches(task.cron, {
-          startAt: startDay.toISOString(),
-          endAt: endDay.toISOString(),
-          matchCount: 1440
-        });
-
-        return {
-          ...task,
-          schedule: nextIterations
-            .map((d) => new Date(d))
-            .filter((d) => d.getTime() >= task.startDate.getTime())
-        };
-      })
-      .filter((schedule) => {
-        return schedule.schedule.length > 0;
-      })
-      .map((taskSchedule) => {
-        return taskSchedule.schedule.map(
-          (date) =>
-            ({
-              date,
-              task: taskSchedule
-            } as EventItem)
-        );
-      })
-      .flat();
-  }, [tasks]);
+  const computedEvents = useEvents(tasks, startDay, endDay);
 
   const [submitting, setSubmitting] = useState(false);
-  const [newTask, setNewTask] = useState<Date>();
+  const [newTask, setNewTask] = useState<dayjs.Dayjs>();
   const dispatch = useAppDispatch();
 
   const handleFormSubmit = async (task: Task) => {
@@ -101,18 +73,19 @@ const Day = ({date}: DayProps) => {
       />
 
       <>
-        <Scale date={date} mode="separator" onClick={(date) => setNewTask(date)} />
+        <Scale date={date} mode="separator" onClick={(date) => setNewTask(dayjs(date))} />
         {computedEvents
-          .sort((a, b) => a.date.getTime() - b.date.getTime())
+          .sort((a, b) => a.date.utcOffset() - b.date.utcOffset())
           .map((schedule, i) => {
+            const date = schedule.date.toDate();
             const position =
-              (schedule.date.getHours() / 24 + schedule.date.getMinutes() / 1440) * 100;
+              (date.getHours() / 24 + date.getMinutes() / 1440) * 100;
 
             const overlaps = computedEvents.filter((s) => {
-              const min = schedule.date.getTime() - 1800 * 1000;
-              const max = schedule.date.getTime() + 1800 * 1000;
+              const min = date.getTime() - 1800 * 1000;
+              const max = date.getTime() + 1800 * 1000;
 
-              return s.date.getTime() >= min && s.date.getTime() <= max;
+              return s.date.toDate().getTime() >= min && s.date.toDate().getTime() <= max;
             });
             const number = overlaps.length;
             const index = overlaps.findIndex((s) => s === schedule);

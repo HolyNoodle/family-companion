@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export interface AppState {
   tasks: WithId<Task>[];
 }
@@ -12,20 +14,20 @@ export interface Task {
   description?: string;
 
   lastUpdatedBy: string;
-  lastUpdatedAt: Date;
+  lastUpdatedAt: dayjs.Dayjs;
 
   cron: string;
 
-  startDate: Date;
-  endDate?: Date;
+  startDate: dayjs.Dayjs;
+  endDate?: dayjs.Dayjs;
   active?: boolean;
 
   jobs?: WithId<Job>[];
 }
 
 export interface Job {
-  date: Date;
-  completionDate?: Date;
+  date: dayjs.Dayjs;
+  completionDate?: dayjs.Dayjs;
   participations: Participation[];
 }
 
@@ -34,5 +36,5 @@ export type WithId<T> = T & {
 };
 
 export interface JobSchedule extends WithId<Task> {
-  schedule: Date[];
+  schedule: dayjs.Dayjs[];
 }

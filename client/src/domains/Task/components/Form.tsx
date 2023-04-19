@@ -29,7 +29,7 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
 
   useEffect(() => {
     form.resetFields();
-    task?.startDate && handleCronChange(task.cron || generateCronString(task.startDate));
+    task?.startDate && handleCronChange(task.cron || generateCronString(task.startDate.toDate()));
   }, [task]);
 
   const handleStartDateChange = (startDate: dayjs.Dayjs) => {
@@ -65,7 +65,7 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
         startDate: dayjs(task?.startDate),
         label: task?.label,
         description: task?.description,
-        cron: task?.cron || (task?.startDate && generateCronString(task?.startDate)) || undefined
+        cron: task?.cron || (task?.startDate && generateCronString(task!.startDate.toDate())) || undefined
       }}
       onFinish={onSubmit}
       autoComplete="off"

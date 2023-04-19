@@ -1,22 +1,24 @@
 import React, {useState} from "react";
 import styled from "styled-components";
-import {Task, WithId} from "src/types";
+import {Job, Task, WithId} from "src/types";
 import {Button, Popover, Space, Typography} from "antd";
 import TaskForm from "src/domains/Task/components/Form";
 import api from "src/api";
 import {fetchTasks} from "src/domains/Task/state";
 import {useAppDispatch} from "src/store";
+import dayjs from "dayjs";
 
 export interface EventItem {
-  date: Date;
+  date: dayjs.Dayjs;
   task: WithId<Task>;
+  job?: WithId<Job>;
 }
 
-const EventContainer = styled.div`
+const EventContainer = styled.div<{completed: boolean}>`
   font-size: 0.9em;
   border: 1px solid rgba(0, 0, 0, 0.3);
   box-shadow: 3px;
-  background-color: rgba(230, 230, 230, 1);
+  background-color: ${({completed}) => (completed ? "green" : "rgba(230, 230, 230, 1)")};
   white-space: nowrap;
   cursor: pointer;
 `;
@@ -58,6 +60,9 @@ const EventCard = ({event}: EventProps) => {
     }
   };
 
+  const isCompleted = !!event.job?.completionDate;
+  const completedBy = event.job?.participations.map((p) => p.person).join(", ");
+
   return (
     <Popover
       content={
@@ -91,7 +96,7 @@ const EventCard = ({event}: EventProps) => {
       open={details}
       onOpenChange={(visible) => setDetails(visible)}
     >
-      <EventContainer>
+      <EventContainer completed={isCompleted}>
         <TaskForm
           open={edit}
           submitting={submitting}
