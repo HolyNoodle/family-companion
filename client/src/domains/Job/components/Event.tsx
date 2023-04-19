@@ -4,6 +4,8 @@ import {Task, WithId} from "src/types";
 import {Button, Popover, Space, Typography} from "antd";
 import TaskForm from "src/domains/Task/components/Form";
 import api from "src/api";
+import {fetchTasks} from "src/domains/Task/state";
+import {useAppDispatch} from "src/store";
 
 export interface EventItem {
   date: Date;
@@ -16,6 +18,7 @@ const EventContainer = styled.div`
   box-shadow: 3px;
   background-color: rgba(230, 230, 230, 1);
   white-space: nowrap;
+  cursor: pointer;
 `;
 
 export interface EventProps {
@@ -26,12 +29,15 @@ const EventCard = ({event}: EventProps) => {
   const [details, setDetails] = useState(false);
   const [edit, setEdit] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const dispatch = useAppDispatch();
 
   const handleFormSubmit = async (task: Task) => {
     setSubmitting(true);
 
     try {
       await api.pushTask({...task, id: event.task.id});
+
+      dispatch(fetchTasks());
 
       setEdit(false);
     } finally {
@@ -44,6 +50,9 @@ const EventCard = ({event}: EventProps) => {
 
     try {
       await api.deleteTask(event.task.id);
+
+      dispatch(fetchTasks());
+      setDetails(false);
     } finally {
       setSubmitting(false);
     }
@@ -63,7 +72,15 @@ const EventCard = ({event}: EventProps) => {
               Delete
             </Button>
 
-            <Button disabled={submitting} type="default" onClick={() => setEdit(true)} size="small">
+            <Button
+              disabled={submitting}
+              type="default"
+              onClick={() => {
+                setEdit(true);
+                setDetails(false);
+              }}
+              size="small"
+            >
               Edit
             </Button>
           </Space>

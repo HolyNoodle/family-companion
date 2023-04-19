@@ -1,15 +1,16 @@
 import React, {useMemo, useState} from "react";
 import styled from "styled-components";
 import {useSelector} from "react-redux";
+import {getFutureMatches} from "@datasert/cronjs-matcher";
 
 import api from "src/api";
-import {useAPIData} from "src/utils";
 import DayContainer from "../components/DayContainer";
 import Scale from "../components/Scale";
 import EventCard, {EventItem} from "../components/Event";
 import TaskForm from "src/domains/Task/components/Form";
 import {Task} from "src/types";
-import { selectAllTasks } from "src/domains/Task/state";
+import {fetchTasks, selectAllTasks} from "src/domains/Task/state";
+import { useAppDispatch } from "src/store";
 
 export interface DayProps {
   date: Date;
@@ -21,7 +22,7 @@ const Event = styled.div<{position: number; overlap: number; index: number}>`
   top: calc(${({position}) => position}% - 1em);
   height: 2em;
   width: ${({overlap}) => 94 / overlap}%;
-  left: ${({index, overlap}) => 3 + (index * (94 / overlap))}%;
+  left: ${({index, overlap}) => 3 + index * (94 / overlap)}%;
 `;
 
 const Day = ({date}: DayProps) => {
@@ -40,22 +41,18 @@ const Day = ({date}: DayProps) => {
 
   const tasks = useSelector(selectAllTasks);
 
-  const {
-    state: {data = []},
-    invalidate
-  } = useAPIData(api.getSchedule, startDay, endDay);
-
   const computedEvents = useMemo(() => {
-    return data
-      .map((schedule) => {
+    return tasks
+      .map((task) => {
+        const nextIterations = getFutureMatches(task.cron, {
+          startAt: startDay.toISOString(),
+          endAt: endDay.toISOString(),
+          matchCount: 1440
+        });
+
         return {
-          ...schedule,
-          schedule: schedule.schedule.filter(
-            (scheduleDate) =>
-              scheduleDate.getFullYear() === date.getFullYear() &&
-              scheduleDate.getMonth() === date.getMonth() &&
-              scheduleDate.getDate() === date.getDate()
-          )
+          ...task,
+          schedule: nextIterations.map((d) => new Date(d))
         };
       })
       .filter((schedule) => {
@@ -71,20 +68,20 @@ const Day = ({date}: DayProps) => {
         );
       })
       .flat();
-  }, [data]);
+  }, [tasks]);
 
-  const [selectedEvent, setSelectedEvent] = useState<EventItem>();
   const [submitting, setSubmitting] = useState(false);
   const [newTask, setNewTask] = useState<Date>();
+  const dispatch = useAppDispatch();
 
   const handleFormSubmit = async (task: Task) => {
     setSubmitting(true);
 
     try {
-      await api.pushTask({...task, id: selectedEvent?.task.id});
+      await api.pushTask(task);
 
-      invalidate();
-      setSelectedEvent(undefined);
+      dispatch(fetchTasks());
+
       setNewTask(undefined);
     } finally {
       setSubmitting(false);
@@ -116,14 +113,13 @@ const Day = ({date}: DayProps) => {
               return s.date.getTime() >= min && s.date.getTime() <= max;
             });
             const number = overlaps.length;
-            const index = overlaps.findIndex(s => s === schedule);
+            const index = overlaps.findIndex((s) => s === schedule);
 
             return (
               <Event
                 key={i}
                 index={index}
                 position={position}
-                onClick={() => setSelectedEvent(schedule)}
                 overlap={number}
               >
                 <EventCard event={schedule} />

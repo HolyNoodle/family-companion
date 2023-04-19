@@ -43,7 +43,9 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
 
   const handleCronChange = (cron: string) => {
     try {
-      const nextIterations = getFutureMatches(cron).map((d) => new Date(d));
+      const nextIterations = getFutureMatches(cron, {
+        startAt: form.getFieldValue("startDate")?.toDate().toISOString()
+      }).map((d) => new Date(d));
       setNextIterations(nextIterations);
       form.setFieldValue("cron", cron);
     } catch (ex) {
