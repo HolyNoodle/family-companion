@@ -19,10 +19,6 @@ if (!process.env.STORAGE_PATH) {
 const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
 const notification = new HomeAssistantNotificationProvider(connection);
 
-if (!notification) {
-  console.error("No notification service for this env");
-}
-
 let taskScheduler: JobScheduler;
 const storagePath = process.env.STORAGE_PATH;
 State.setPath(storagePath);
@@ -40,8 +36,14 @@ app.listen(PORT, async () => {
   console.log(`Listening on port ${PORT}`);
 
   console.log("Starting home assistant connection");
-  await connection.start();
-  console.log("Home assistant connection is ready");
+  try {
+    await connection.start();
+    console.log("Home assistant connection is ready");
+  } catch (ex) {
+    console.error("An error occured while starting home assistant connection");
+    console.error("Error:", ex);
+    process.exit(1);
+  }
 
   const state = await State.get();
 

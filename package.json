@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "concurrently --kill-others \"cd ./server && pnpm dev\" \"cd ./client && pnpm start:dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}

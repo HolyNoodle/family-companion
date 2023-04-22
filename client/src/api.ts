@@ -4,10 +4,10 @@ import {JobSchedule, Task, WithId} from "./types";
 class API {
   host: string;
   constructor() {
-    this.host = window.location.host.split(":")[0] + ":7000";
+    this.host = window.location.host;
   }
   buildURL(path: string) {
-    return `http://${this.host}${path}`;
+    return `http://${this.host}/api${path}`;
   }
   getTasks(): Promise<WithId<Task>[]> {
     return fetch(this.buildURL("/tasks"))

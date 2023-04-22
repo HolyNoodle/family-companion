@@ -53,7 +53,7 @@ export class HomeAssistantConnection extends EventEmitter {
   }
 
   async start() {
-    const url = process.env.SUPERVISOR_URL || "ws://supervisor/core/websocket";
+    const url = process.env.SUPERVISOR_URL!;
 
     console.log("Contacting Home Assistant instance", url);
 

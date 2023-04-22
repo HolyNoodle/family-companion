@@ -3,12 +3,16 @@ import {Provider} from "react-redux";
 
 import "antd/dist/reset.css";
 
-import Week from "./domains/Job/views/Week";
 import store from "./store";
+import {RouterProvider} from "react-router-dom";
+import router from "./router";
+import MainLayout from "./domains/Layout/components/MainLayout";
 
 const App = () => (
   <Provider store={store}>
-    <Week />
+    <MainLayout>
+      <RouterProvider router={router} />
+    </MainLayout>
   </Provider>
 );
 

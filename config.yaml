@@ -2,9 +2,9 @@ name: "Family companion"
 description: "Family companion description"
 version: "1.0.0"
 slug: "fam_comp"
+homeassistant_api: true
 init: false
-ports:
-  7000/tcp: 7000
+ingress: true
 arch:
   - aarch64
   - amd64
