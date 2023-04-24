@@ -105,7 +105,7 @@ export class HomeAssistantConnection extends EventEmitter {
         }
 
         if (event.type === "result") {
-          console.log("Received result", event);
+          // console.log("Received result", event);
           this.emit(event.id + "", event.result);
         }
       };

@@ -16,6 +16,8 @@ export type NotificationInfo =
       message: string;
       title: string;
       data?: {
+        persistent: boolean;
+        sticky: boolean;
         tag?: string;
         actions: NotificationAction[];
       };
@@ -37,6 +39,8 @@ const createNotificationMessage = (
     service_data: {
       ...notification,
       data: {
+        persistent: true,
+        sticky: true as any,
         tag: jobId,
         actions: [
           {
