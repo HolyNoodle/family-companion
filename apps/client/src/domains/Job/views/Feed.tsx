@@ -9,7 +9,7 @@ import {useEvents} from "../utils";
 import {Button, Space} from "antd";
 import dayjs from "dayjs";
 import TaskForm from "src/domains/Task/components/Form";
-import {Task} from "@famcomp/common";
+import {Task, isJobActive, isTaskActive} from "@famcomp/common";
 import api from "src/api";
 
 const FeedContainer = styled.div`
@@ -139,6 +139,12 @@ const Feed = () => {
                   <Space>
                     <span>{event.date.format("HH:mm")}</span>
                     <span>{event.task.label}</span>
+                    <span>
+                      Finished: {event.job.completionDate?.format("HH:mm") || (isJobActive(event.task, event.job) ? "In progress" : "Missed")}
+                    </span>
+                    <span>
+                      {event.job.participations.map((participation) => participation.person)}
+                    </span>
                   </Space>
                 </div>
               ))}

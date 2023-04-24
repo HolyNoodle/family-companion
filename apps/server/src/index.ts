@@ -3,15 +3,10 @@ import cors from "cors";
 import helmet from "helmet";
 import { JobScheduler, getExecutionDates } from "./domains/Job";
 import { State } from "./state";
-import { Job, Person, Task } from "@famcomp/common";
+import { Job, Person, Task, isTaskActive } from "@famcomp/common";
 
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import { HomeAssistantNotificationProvider } from "./domains/Notification";
-import {
-  createTaskEntity,
-  deleteTaskEntity,
-  isTaskActive,
-} from "./domains/Task";
 import dayjs from "dayjs";
 
 if (!process.env.STORAGE_PATH) {

@@ -42,7 +42,12 @@ export const fetchTasks = createAsyncThunk("tasks/fetch", async () => {
   return rawTasks.map((rawTask) => ({
     ...rawTask,
     startDate: dayjs(rawTask.startDate),
-    jobs: rawTask.jobs?.map((j) => ({...j, date: dayjs(j.date)})) || []
+    jobs:
+      rawTask.jobs?.map((j) => ({
+        ...j,
+        completionDate: j.completionDate ? dayjs(j.completionDate) : undefined,
+        date: dayjs(j.date)
+      })) || []
   }));
 });
 

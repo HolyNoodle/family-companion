@@ -16,7 +16,3 @@ export const createTaskEntity = (task: Task, active = false) =>
     attributes: {},
     state: undefined,
   } as EntityState);
-
-  export const isTaskActive = (task: Task) => {
-    return !(task.jobs?.[0]?.completionDate !== undefined);
-  }
