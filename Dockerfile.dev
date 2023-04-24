@@ -10,10 +10,6 @@ COPY ./ingress.conf /etc/nginx/sites-enabled/ingress.conf
 
 WORKDIR /app
 
-COPY . .
-
-# RUN pnpm i
-
 EXPOSE 8099
 
 ENV STORAGE_PATH /data/db

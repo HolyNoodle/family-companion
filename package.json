@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "start": "concurrently --kill-others \"cd ./server && pnpm dev\" \"cd ./client && pnpm start:dev\""
+    "start": "concurrently --kill-others \"cd ./apps/server && pnpm start:dev\" \"cd ./apps/client && pnpm start:dev\""
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
-  }
+  },
+  "packageManager": "pnpm@8.2.0"
 }
