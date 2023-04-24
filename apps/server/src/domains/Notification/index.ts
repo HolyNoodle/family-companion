@@ -42,7 +42,7 @@ const createNotificationMessage = (
       data: {
         persistent: true,
         sticky: true as any,
-        tag: target.id,
+        tag: taskId,
         actions: withAction
           ? [
               {
@@ -62,46 +62,31 @@ const createNotificationMessage = (
   };
 };
 
-export class HomeAssistantNotificationProvider implements NotificationProvider {
-  constructor(private haConnection: HomeAssistantConnection, private persons: Person[]) {}
+export class HomeAssistantNotificationProvider {
+  constructor(private haConnection: HomeAssistantConnection) {}
 
-  async createJob(task: Task, job: Job): Promise<any> {
-    const promises = this.persons
-      .filter((person) => person.id === "person.kevin")
-      .map((person) => {
-        const notification = createNotificationMessage(
-          task.id,
-          job.id,
-          person as Required<Person>,
-          {
-            title: task.label,
-            message: task.description || "",
-          }
-        );
-
-        return this.haConnection.send(notification);
-      });
-
-    return Promise.all(promises);
-  }
-
-  async completeJob(task: Task, job: Job): Promise<any> {
-    const promises = this.persons.map((person) => {
-      const notification = createNotificationMessage(
-        task.id,
-        job.id,
-        person as Required<Person>,
-        {
-          message: "clear_notification",
-        },
-        false
-      );
-
-      console.log("Sending notification", notification);
-
-      return this.haConnection.send(notification);
+  async sendNotification(person: Person, task: Task, job: Job): Promise<any> {
+    const notification = createNotificationMessage(task.id, job.id, person, {
+      title: task.label,
+      message: task.description || "",
     });
 
-    return Promise.all(promises);
+    console.log("Send notification for", person.id, ":", notification);
+    return this.haConnection.send(notification);
+  }
+
+  async clearNotification(person: Person, task: Task, job: Job): Promise<any> {
+    const notification = createNotificationMessage(
+      task.id,
+      job.id,
+      person as Required<Person>,
+      {
+        message: "clear_notification",
+      },
+      false
+    );
+
+    console.log("Clear notification for", person.id, ":", notification);
+    return this.haConnection.send(notification);
   }
 }

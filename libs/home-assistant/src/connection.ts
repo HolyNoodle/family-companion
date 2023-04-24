@@ -35,17 +35,21 @@ export type HomeAssistantResponse =
   | {
       type: "auth_required" | "auth_ok" | "auth_invalid";
     }
-    | { type: "event", event: {
-      data: {
-        entity_id: string,
-        new_state: {
-          state: any;
+  | {
+      type: "event";
+      event: {
+        event_type: string;
+        data: {
+          entity_id: string;
+          new_state: {
+            state: any;
+          };
+          old_state: {
+            state: any;
+          };
         };
-        old_state: {
-          state: any;
-        }
-      }
-    }};
+      };
+    };
 
 export type NotificationInfo =
   | {
@@ -125,12 +129,12 @@ export class HomeAssistantConnection extends EventEmitter {
         }
 
         if (event.type === "result") {
-          // console.log("Received result", event);
           this.emit(event.id + "", event.result);
         }
 
         if (event.type === "event") {
-          this.emit("state_changed", event.event.data);
+          // console.log("Received event", event);
+          this.emit(event.event.event_type, event.event.data);
         }
       };
     };
@@ -190,10 +194,10 @@ export class HomeAssistantConnection extends EventEmitter {
     });
   }
 
-  subscribeToStateChange() {
+  subscribeToEvent(event: string) {
     this.send({
       type: "subscribe_events",
-      event_type: "state_changed",
+      event_type: event,
     });
   }
 
@@ -205,6 +209,7 @@ export class HomeAssistantConnection extends EventEmitter {
         ({
           id: entity.entity_id,
           name: entity.attributes.friendly_name,
+          isHome: (entity.state as string).toLocaleLowerCase() === "home",
         } as Person)
     );
   }

@@ -48,7 +48,7 @@ export class JobScheduler extends EventEmitter {
   }
 
   private startTask(task: Task) {
-    if(!task.cron) {
+    if (!task.cron) {
       return;
     }
 
@@ -83,25 +83,31 @@ export class JobScheduler extends EventEmitter {
     );
 
     const timer = setTimeout(() => {
-      console.log("Job triggered for", `"${task.label}"`, `(${task.id})`);
-      if (!task.jobs) {
-        task.jobs = [];
-      }
-
-      const job: Job = {
-        id: v4(),
-        date: dayjs(nextDate),
-        participations: [],
-      };
-
-      task.jobs.splice(0, 0, job);
-
-      this.emit("start_job", task, job);
+      this.triggerTask(task);
 
       this.startTask(task);
     }, nextDate.getTime() - now.getTime());
 
     this.taskIds[task.id] = timer;
+  }
+
+  triggerTask(task: Task) {
+    console.log("Job triggered for", `"${task.label}"`, `(${task.id})`);
+    if (!task.jobs) {
+      task.jobs = [];
+    }
+
+    const job: Job = {
+      id: v4(),
+      date: dayjs(),
+      participations: [],
+    };
+
+    task.jobs.splice(0, 0, job);
+
+    this.emit("start_job", task, job);
+
+    return job;
   }
 }
 

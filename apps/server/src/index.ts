@@ -3,11 +3,15 @@ import cors from "cors";
 import helmet from "helmet";
 import { JobScheduler, getExecutionDates } from "./domains/Job";
 import { State } from "./state";
-import { Job, Task } from "@famcomp/common";
+import { Job, Person, Task } from "@famcomp/common";
 
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import { HomeAssistantNotificationProvider } from "./domains/Notification";
-import { createTaskEntity, deleteTaskEntity } from "./domains/Task";
+import {
+  createTaskEntity,
+  deleteTaskEntity,
+  isTaskActive,
+} from "./domains/Task";
 import dayjs from "dayjs";
 
 if (!process.env.STORAGE_PATH) {
@@ -49,26 +53,66 @@ app.listen(PORT, async () => {
 
   state.persons = await connection.getPersons();
 
-  connection.subscribeToStateChange();
+  connection.subscribeToEvent("state_changed");
   connection.addListener("state_changed", (data) => {
     if (!data.entity_id.startsWith("person.")) {
       return;
     }
 
-    const person = data.entity_id.split(".")[1];
     const stateValue = data.new_state.state as string;
-    const personObject = state.persons.find((p) => p.id === person)!;
-
+    const personObject = state.persons.find((p) => p.id === data.entity_id)!;
     personObject.isHome = stateValue.toLocaleLowerCase() === "home";
+
+    console.log("State changed for", data.entity_id, "is now:", stateValue);
+
+    syncPersonNotifications(personObject);
   });
-  
-  const notification = new HomeAssistantNotificationProvider(connection, state.persons);
+
+  const notification = new HomeAssistantNotificationProvider(connection);
+
+  const syncPersonNotifications = (person: Person) => {
+    const activeTasks = state.tasks.filter(isTaskActive);
+    const inactiveTasks = state.tasks.filter(
+      (t) => !isTaskActive(t) && !!t.jobs?.[0]
+    );
+
+    const method = person.isHome
+      ? notification.sendNotification.bind(notification)
+      : notification.clearNotification.bind(notification);
+
+    const inactivePromises = inactiveTasks.map((task) =>
+      notification.clearNotification(person, task, task.jobs[0])
+    );
+    const activePromises = activeTasks.map((task) =>
+      method(person, task, task.jobs[0])
+    );
+
+    return Promise.all([...activePromises, inactivePromises]);
+  };
+
+  const syncNotifications = () => {
+    console.log("Syncing all tasks notifications");
+    return Promise.all(state.persons.map(syncPersonNotifications));
+  };
+
+  connection.subscribeToEvent("trigger_task");
+  connection.addListener("trigger_task", ({ id }: { id: string }) => {
+    const task = state.tasks.find((t) => t.id === id);
+
+    if (!task) {
+      console.log("Task", id, "not found");
+      return;
+    }
+
+    console.log("Trigger task", task);
+    taskScheduler.triggerTask(task);
+  });
 
   taskScheduler = new JobScheduler(state.tasks);
 
   taskScheduler.on("start_job", (task: Task, job: Job) => {
     console.log("scheduler start job");
-    notification.createJob(task, job);
+    syncNotifications();
 
     connection.fireEvent("task_triggered", {
       task,
@@ -115,7 +159,6 @@ app.listen(PORT, async () => {
       case "COMPLETE":
         job.completionDate = dayjs();
 
-        await notification?.completeJob(task, job);
         connection.fireEvent("task_completed", {
           task,
           job,
@@ -135,13 +178,14 @@ app.listen(PORT, async () => {
       case "CANCEL":
         job.completionDate = dayjs();
 
-        notification?.completeJob(task, job);
         connection.fireEvent("task_canceled", {
           task,
           job,
         });
         break;
     }
+
+    syncNotifications();
 
     State.set(state);
 
@@ -169,17 +213,7 @@ app.listen(PORT, async () => {
     res.send(task).end();
   });
 
-  app.get("/notifications/clear", async (req, res) => {
-    state.tasks.forEach((t) => {
-      t.jobs?.forEach(async (job) => {
-        await notification.completeJob(t, job);
-      });
-    });
-
-    res.writeHead(200).end();
-  });
-
-  app.delete("/tasks", (req, res) => {
+  app.delete("/tasks", async (req, res) => {
     if (!req.query.id) {
       res.writeHead(400, "Id is required");
       res.end();
@@ -194,13 +228,17 @@ app.listen(PORT, async () => {
       return;
     }
 
+    if (state.tasks[index].jobs?.[0]?.completionDate) {
+      state.tasks[index].jobs[0].completionDate = dayjs();
+    }
+
+    await syncNotifications();
+
     state.tasks.splice(index, 1);
 
     State.set(state);
 
     taskScheduler.update(req.query.id! as string);
-
-    connection.createOrUpdateEntity(deleteTaskEntity(req.query.id as string));
 
     res.send(true).end();
   });
