@@ -15,6 +15,15 @@ export type HomeAssistantMessageRaw<T> =
   | {
       type: "set_states";
       data: EntityState<T>;
+    }
+  | {
+      type: "fire_event";
+      event_type: string;
+      event_data?: {};
+    }
+  | {
+      type: "subscribe_events";
+      event_type: string;
     };
 export type HomeAssistantResponse =
   | {
@@ -25,7 +34,18 @@ export type HomeAssistantResponse =
     }
   | {
       type: "auth_required" | "auth_ok" | "auth_invalid";
-    };
+    }
+    | { type: "event", event: {
+      data: {
+        entity_id: string,
+        new_state: {
+          state: any;
+        };
+        old_state: {
+          state: any;
+        }
+      }
+    }};
 
 export type NotificationInfo =
   | {
@@ -108,6 +128,10 @@ export class HomeAssistantConnection extends EventEmitter {
           // console.log("Received result", event);
           this.emit(event.id + "", event.result);
         }
+
+        if (event.type === "event") {
+          this.emit("state_changed", event.event.data);
+        }
       };
     };
 
@@ -145,7 +169,8 @@ export class HomeAssistantConnection extends EventEmitter {
   }
 
   createOrUpdateEntity(entity: EntityState) {
-    const url = "http://" + process.env.SUPERVISOR_URL! + "/states/" + entity.entity_id;
+    const url =
+      "http://" + process.env.SUPERVISOR_URL! + "/states/" + entity.entity_id;
 
     return fetch(url, {
       method: "POST",
@@ -154,7 +179,22 @@ export class HomeAssistantConnection extends EventEmitter {
         state: entity.state,
         attributes: entity.attributes,
       }),
-    })
+    });
+  }
+
+  fireEvent(event: string, data?: {}) {
+    this.send({
+      type: "fire_event",
+      event_type: event,
+      event_data: data,
+    });
+  }
+
+  subscribeToStateChange() {
+    this.send({
+      type: "subscribe_events",
+      event_type: "state_changed",
+    });
   }
 
   async getPersons() {
@@ -165,7 +205,6 @@ export class HomeAssistantConnection extends EventEmitter {
         ({
           id: entity.entity_id,
           name: entity.attributes.friendly_name,
-          device: entity.attributes.source?.split(".")[1],
         } as Person)
     );
   }

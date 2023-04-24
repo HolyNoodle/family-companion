@@ -110,10 +110,6 @@ const Feed = () => {
         Add task
       </Button>
       {tasks.map((task) => {
-        if(task.cron) {
-          return null;
-        }
-        
         return (
           <div>
             {task.label}{" "}

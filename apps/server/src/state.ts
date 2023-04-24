@@ -47,6 +47,7 @@ export class State {
       } else {
         State.state = {
           tasks: [],
+          persons: []
         };
       }
     }

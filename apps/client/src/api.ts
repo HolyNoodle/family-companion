@@ -31,7 +31,6 @@ class API {
       body: JSON.stringify({
         ...task,
         startDate: task.startDate?.toISOString(),
-        lastUpdatedBy: "person.kevin"
       }),
       headers: {
         "Content-type": "application/json"

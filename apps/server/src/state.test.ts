@@ -53,6 +53,7 @@ describe("AppState", () => {
           jobs: [],
         },
       ],
+      persons: [],
     };
     exists.mockReturnValue(true);
     readFile.mockResolvedValue(JSON.stringify(fileState));
@@ -90,6 +91,7 @@ describe("AppState", () => {
           jobs: [],
         },
       ],
+      persons: [],
     };
     access.mockRejectedValue("not exists");
 
@@ -132,6 +134,7 @@ describe("AppState", () => {
           jobs: [],
         },
       ],
+      persons: [],
     };
     access.mockResolvedValue(true);
 

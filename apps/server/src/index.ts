@@ -18,7 +18,6 @@ if (!process.env.STORAGE_PATH) {
 }
 
 const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
-const notification = new HomeAssistantNotificationProvider(connection);
 
 let taskScheduler: JobScheduler;
 const storagePath = process.env.STORAGE_PATH;
@@ -48,13 +47,33 @@ app.listen(PORT, async () => {
 
   const state = await State.get();
 
+  state.persons = await connection.getPersons();
+
+  connection.subscribeToStateChange();
+  connection.addListener("state_changed", (data) => {
+    if (!data.entity_id.startsWith("person.")) {
+      return;
+    }
+
+    const person = data.entity_id.split(".")[1];
+    const stateValue = data.new_state.state as string;
+    const personObject = state.persons.find((p) => p.id === person)!;
+
+    personObject.isHome = stateValue.toLocaleLowerCase() === "home";
+  });
+  
+  const notification = new HomeAssistantNotificationProvider(connection, state.persons);
+
   taskScheduler = new JobScheduler(state.tasks);
 
   taskScheduler.on("start_job", (task: Task, job: Job) => {
     console.log("scheduler start job");
     notification.createJob(task, job);
 
-    connection.createOrUpdateEntity(createTaskEntity(task, true));
+    connection.fireEvent("task_triggered", {
+      task,
+      job,
+    });
 
     State.set(state);
   });
@@ -64,7 +83,6 @@ app.listen(PORT, async () => {
   });
 
   app.get("/tasks/action", async (req, res) => {
-    console.log(req.query);
     if (!req.query.taskId) {
       console.log("no id");
       res.writeHead(400, "Task Id is required");
@@ -83,8 +101,6 @@ app.listen(PORT, async () => {
       return;
     }
 
-    console.log(task.jobs);
-
     const job = task.jobs?.find((j) => j.id === req.query.jobId);
 
     if (!job) {
@@ -98,8 +114,12 @@ app.listen(PORT, async () => {
     switch (req.query.action) {
       case "COMPLETE":
         job.completionDate = dayjs();
-        notification?.completeJob(task, job);
-        connection.createOrUpdateEntity(createTaskEntity(task, false));
+
+        await notification?.completeJob(task, job);
+        connection.fireEvent("task_completed", {
+          task,
+          job,
+        });
       case "PARTICIPATE":
         if (
           !job.participations.some(
@@ -113,7 +133,13 @@ app.listen(PORT, async () => {
         }
         break;
       case "CANCEL":
+        job.completionDate = dayjs();
+
         notification?.completeJob(task, job);
+        connection.fireEvent("task_canceled", {
+          task,
+          job,
+        });
         break;
     }
 
@@ -134,8 +160,6 @@ app.listen(PORT, async () => {
 
     if (index < 0) {
       state.tasks.push(task);
-
-      connection.createOrUpdateEntity(createTaskEntity(task));
     }
 
     State.set(state);
@@ -143,6 +167,16 @@ app.listen(PORT, async () => {
     taskScheduler.update(req.body.id! as string);
 
     res.send(task).end();
+  });
+
+  app.get("/notifications/clear", async (req, res) => {
+    state.tasks.forEach((t) => {
+      t.jobs?.forEach(async (job) => {
+        await notification.completeJob(t, job);
+      });
+    });
+
+    res.writeHead(200).end();
   });
 
   app.delete("/tasks", (req, res) => {
@@ -187,8 +221,6 @@ app.listen(PORT, async () => {
   });
 
   app.get("/stats", async (req, res) => {
-    const persons = await connection.getPersons();
-
     type Stats = {
       [person: string]: {
         [task: string]: number;
