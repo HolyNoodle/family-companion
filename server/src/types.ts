@@ -1,5 +1,5 @@
 export interface AppState {
-  tasks: WithId<Task>[];
+  tasks: Task[];
 }
 
 export interface Participation {
@@ -7,34 +7,29 @@ export interface Participation {
   description: string;
 }
 
-export interface Task {
+export interface Task extends WithId {
   label: string;
   description?: string;
-
-  lastUpdatedBy: string;
-  lastUpdatedAt: Date;
 
   cron: string;
 
   startDate?: Date;
-  endDate?: Date;
   active?: boolean;
 
-  jobs?: WithId<Job>[];
+  jobs?: Job[];
 }
 
-export interface Job {
+export interface Job extends WithId {
   date: Date;
   completionDate?: Date;
   participations: Participation[];
 }
 
-export type WithId<T, U = string> = T & {
+export interface WithId<U = string> {
   id: U;
 };
 
-export interface Person {
-  id: string;
+export interface Person extends WithId {
   name: string;
   device?: string;
 }

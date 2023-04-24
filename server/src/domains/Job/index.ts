@@ -8,7 +8,7 @@ export class JobScheduler extends EventEmitter {
   private taskIds: { [id: string]: NodeJS.Timeout };
   private schedulerTimer: NodeJS.Timeout | undefined;
 
-  constructor(private tasks: WithId<Task>[]) {
+  constructor(private tasks: Task[]) {
     super();
 
     this.taskIds = {};
@@ -46,7 +46,7 @@ export class JobScheduler extends EventEmitter {
     delete this.taskIds[id];
   }
 
-  private startTask(task: WithId<Task>) {
+  private startTask(task: Task) {
     const endAt = new Date();
     endAt.setHours(endAt.getHours() + 1);
     endAt.setSeconds(endAt.getSeconds() + 1);
@@ -83,7 +83,7 @@ export class JobScheduler extends EventEmitter {
         task.jobs = [];
       }
 
-      const job: WithId<Job> = {
+      const job: Job = {
         id: v4(),
         date: nextDate,
         participations: [],

@@ -1,4 +1,4 @@
-import { Job, Person, Task, WithId } from "../../types";
+import { Job, Person, Task } from "../../types";
 import { NotificationProvider } from "./types";
 import {
   HomeAssistantConnection,
@@ -58,7 +58,7 @@ const createNotificationMessage = (
 export class HomeAssistantNotificationProvider implements NotificationProvider {
   constructor(private haConnection: HomeAssistantConnection) {}
 
-  async createJob(task: WithId<Task>, job: WithId<Job>): Promise<any> {
+  async createJob(task: Task, job: Job): Promise<any> {
     const persons = await this.haConnection.getPersons();
 
     const promises = persons
@@ -80,7 +80,7 @@ export class HomeAssistantNotificationProvider implements NotificationProvider {
     return Promise.all(promises);
   }
 
-  async completeJob(task: WithId<Task>, job: WithId<Job>): Promise<any> {
+  async completeJob(task: Task, job: Job): Promise<any> {
     const persons = await this.haConnection.getPersons();
 
     const promises = persons

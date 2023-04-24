@@ -5,15 +5,15 @@ import "antd/dist/reset.css";
 
 import store from "./store";
 import {RouterProvider} from "react-router-dom";
-import router from "./router";
-import MainLayout from "./domains/Layout/components/MainLayout";
+import createRouter from "./router";
 
-const App = () => (
-  <Provider store={store}>
-    <MainLayout>
+const App = () => {
+  const router = createRouter();
+  return (
+    <Provider store={store}>
       <RouterProvider router={router} />
-    </MainLayout>
-  </Provider>
-);
+    </Provider>
+  );
+};
 
 export default App;

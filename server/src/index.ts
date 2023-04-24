@@ -8,6 +8,7 @@ import { v4 } from "uuid";
 
 import { HomeAssistantConnection } from "./connection";
 import { HomeAssistantNotificationProvider } from "./domains/Notification";
+import { createTaskEntity } from "./domains/Task";
 
 if (!process.env.STORAGE_PATH) {
   console.error(
@@ -49,9 +50,11 @@ app.listen(PORT, async () => {
 
   taskScheduler = new JobScheduler(state.tasks);
 
-  taskScheduler.on("start_job", (task: WithId<Task>, job: WithId<Job>) => {
+  taskScheduler.on("start_job", (task: Task, job: Job) => {
     console.log("scheduler start job");
     notification.createJob(task, job);
+
+    connection.createOrUpdateEntity(createTaskEntity(task, true));
 
     State.set(state);
   });
@@ -119,26 +122,19 @@ app.listen(PORT, async () => {
   });
 
   app.post("/tasks", (req, res) => {
-    const task: WithId<Task> = req.body;
+    const task: Task = req.body;
 
     if (!task.label || !task.cron) {
       res.writeHead(400, "Invalid task parameters").end();
       return;
     }
 
-    if (!task.id) {
-      task.id = v4();
+    const index = state.tasks.findIndex((t) => t.id === task.id);
+
+    if (index < 0) {
       state.tasks.push(task);
-    } else {
-      const index = state.tasks.findIndex((t) => t.id === task.id);
 
-      if (index < 0) {
-        res.writeHead(404, "Task not found");
-        res.end();
-        return;
-      }
-
-      state.tasks[index] = req.body;
+      connection.createOrUpdateEntity(createTaskEntity(task));
     }
 
     State.set(state);

@@ -2,7 +2,7 @@ import { EventEmitter } from "stream";
 import { MessageEvent, WebSocket } from "ws";
 import { Person, WithId } from "./types";
 
-export type HomeAssistantMessage<T> =
+export type HomeAssistantMessageRaw<T> =
   | {
       type: "call_service";
       domain: string;
@@ -11,6 +11,10 @@ export type HomeAssistantMessage<T> =
     }
   | {
       type: "get_states";
+    }
+  | {
+      type: "set_states";
+      data: EntityState<T>;
     };
 export type HomeAssistantResponse =
   | {
@@ -32,10 +36,13 @@ export type NotificationInfo =
       message: "clear_notification";
     };
 
-export interface EntityState {
+export type HomeAssistantMessage<T> = HomeAssistantMessageRaw<T> &
+  Partial<WithId<number>>;
+
+export interface EntityState<State = any, Attributes = any> {
   entity_id: string;
-  attributes: any;
-  state: any;
+  attributes: Attributes;
+  state: State;
 }
 
 export class HomeAssistantConnection extends EventEmitter {
@@ -108,7 +115,7 @@ export class HomeAssistantConnection extends EventEmitter {
     }
 
     this.lastId++;
-    const idMessage: WithId<HomeAssistantMessage<any>, number> = {
+    const idMessage: HomeAssistantMessage<any> = {
       ...message,
       id: this.lastId,
     };
@@ -129,6 +136,13 @@ export class HomeAssistantConnection extends EventEmitter {
             return entityState.entity_id.startsWith(type);
           })
         : states;
+    });
+  }
+
+  createOrUpdateEntity(entity: EntityState) {
+    return this.send<EntityState>({
+      type: "set_states",
+      data: entity,
     });
   }
 

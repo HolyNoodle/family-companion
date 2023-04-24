@@ -47,8 +47,6 @@ describe("AppState", () => {
           cron: "",
           id: "fd",
           label: "",
-          lastUpdatedAt: new Date("2023-04-17T12:36:47.633Z"),
-          lastUpdatedBy: "",
         },
       ],
     };
@@ -70,8 +68,6 @@ describe("AppState", () => {
           cron: "",
           id: "fd",
           label: "",
-          lastUpdatedAt: new Date("2023-04-17T12:36:47.633Z"),
-          lastUpdatedBy: "",
         },
       ],
     });
@@ -85,8 +81,6 @@ describe("AppState", () => {
           cron: "",
           id: "fd",
           label: "",
-          lastUpdatedAt: new Date("2023-04-17T12:36:47.633Z"),
-          lastUpdatedBy: "",
         },
       ],
     };
@@ -120,7 +114,6 @@ describe("AppState", () => {
     });
   });
 
-
   it("Should write file when setting state without create folder", async () => {
     // Arrange
     const state: AppState = {
@@ -129,8 +122,6 @@ describe("AppState", () => {
           cron: "",
           id: "fd",
           label: "",
-          lastUpdatedAt: new Date("2023-04-17T12:36:47.633Z"),
-          lastUpdatedBy: "",
         },
       ],
     };
