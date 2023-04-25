@@ -1,6 +1,6 @@
 name: "Family companion"
 description: "Family companion description"
-version: "0.0.1a"
+version: "0.0.2a"
 slug: "fam_comp"
 homeassistant_api: true
 init: false
