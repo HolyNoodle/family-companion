@@ -1,5 +1,5 @@
 name: "Family companion"
-description: "Family companion description"
+description: "Simple task manager addon for home assistant"
 version: "0.0.5a"
 slug: "fam_comp"
 homeassistant_api: true
