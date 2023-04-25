@@ -41,6 +41,8 @@ export default (
 
       if (index < 0) {
         state.tasks.push(task);
+      } else {
+        state.tasks[index] = task;
       }
 
       State.set(state);

@@ -77,6 +77,7 @@ const Feed = () => {
 
   const computedEvents = useEvents(tasks, start, end);
   const [create, setCreate] = useState(false);
+  const [edit, setEdit] = useState<Task>(undefined);
   const [creating, setCreating] = useState(false);
 
   const handleSubmit = async (task: Task) => {
@@ -84,6 +85,7 @@ const Feed = () => {
     try {
       await api.pushTask(task);
       setCreate(false);
+      setEdit(undefined);
       dispatch(fetchTasks());
     } finally {
       setCreating(false);
@@ -98,12 +100,20 @@ const Feed = () => {
     >
       <TaskForm
         submitting={creating}
+        open={!!edit}
+        task={edit}
+        onSubmit={handleSubmit}
+        onClose={() => setEdit(undefined)}
+      />
+       <TaskForm
+        submitting={creating}
         open={create}
         onSubmit={handleSubmit}
         onClose={() => setCreate(false)}
       />
       <Button
         onClick={() => {
+          setEdit(undefined);
           setCreate(true);
         }}
       >
@@ -111,8 +121,16 @@ const Feed = () => {
       </Button>
       {tasks.map((task) => {
         return (
-          <div>
+          <div key={task.id}>
             {task.label}{" "}
+            <Button
+              onClick={() => {
+                setEdit(task);
+                setCreate(false);
+              }}
+            >
+              Edit
+            </Button>
             <Button
               onClick={async () => {
                 await api.deleteTask(task.id);
@@ -140,10 +158,12 @@ const Feed = () => {
                     <span>{event.date.format("HH:mm")}</span>
                     <span>{event.task.label}</span>
                     <span>
-                      Finished: {event.job.completionDate?.format("HH:mm") || (isJobActive(event.task, event.job) ? "In progress" : "Missed")}
+                      Finished:{" "}
+                      {event.job?.completionDate?.format("HH:mm") ||
+                        (isJobActive(event.task, event.job) ? "In progress" : "Missed")}
                     </span>
                     <span>
-                      {event.job.participations.map((participation) => participation.person)}
+                      {event.job?.participations?.map((participation) => participation.person)}
                     </span>
                   </Space>
                 </div>

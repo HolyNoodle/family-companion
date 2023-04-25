@@ -47,11 +47,11 @@ const createNotificationMessage = (
         actions: withAction
           ? [
               {
-                action: "complete#" + [taskId, jobId, target.id].join("_"),
+                action: ["complete", taskId, jobId, target.id].join("#"),
                 title: "Terminer",
               },
               {
-                action: "cancel#" + [taskId, jobId, target.id].join("_"),
+                action: ["cancel", taskId, jobId, target.id].join("#"),
                 title: "Annuler",
               },
             ]

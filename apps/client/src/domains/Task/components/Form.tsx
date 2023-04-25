@@ -62,9 +62,8 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
       wrapperCol={{span: 16}}
       style={{maxWidth: 600}}
       initialValues={{
+        ...task,
         startDate: dayjs(task?.startDate),
-        label: task?.label,
-        description: task?.description,
         cron: task?.cron || (task?.startDate && generateCronString(task!.startDate.toDate())) || undefined
       }}
       onFinish={onSubmit}

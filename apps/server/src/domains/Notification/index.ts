@@ -42,8 +42,9 @@ export default class NotificationManager extends EventEmitter {
   }
 
   private handleNotificationAction(data: { action: string }) {
-    const [action, args] = data.action.split("#");
-    const [taskId, jobId, person] = args.split("_");
+    const [action, taskId, jobId, person] = data.action.split("#");
+
+    console.log("received action", action, taskId, jobId, person);
 
     const task = this.state.tasks.find((t) => t.id === taskId);
 

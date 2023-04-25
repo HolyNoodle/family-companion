@@ -3,6 +3,11 @@ import tasksSlice from "./domains/Task/state";
 import {useDispatch} from "react-redux";
 
 const store = configureStore({
+  middleware(getDefaultMiddleware) {
+    return getDefaultMiddleware({
+      serializableCheck: false
+    });
+  },
   reducer: {
     tasks: tasksSlice.reducer
   }
