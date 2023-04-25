@@ -1,5 +1,5 @@
+import { Task } from "@famcomp/common";
 import { JobScheduler, getExecutionDates } from ".";
-import { Task, WithId } from "../../types";
 
 jest.mock("uuid", () => ({ v4: () => "123456789" }));
 

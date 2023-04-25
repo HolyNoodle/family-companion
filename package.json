@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "concurrently --kill-others \"cd ./apps/server && pnpm start:dev\" \"cd ./apps/client && pnpm start:dev\""
+    "start:dev": "concurrently --kill-others \"cd ./apps/server && pnpm start:dev\" \"cd ./apps/client && pnpm start:dev\"",
+    "start:prod": "node ./apps/server/dist/index.js"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"

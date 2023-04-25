@@ -10,13 +10,16 @@ COPY ./ingress-ha.conf /etc/nginx/sites-enabled/ingress.conf
 
 WORKDIR /app
 
+# Copy app source
 COPY . .
 
-RUN pnpm i
+RUN pnpm install turbo -w
+RUN pnpm install
+RUN pnpm dlx turbo build
 
 EXPOSE 8099
 
 ENV STORAGE_PATH /data/db
 ENV SUPERVISOR_URL supervisor/core
 
-CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;error_log /dev/stdout info;\" & pnpm start" ]
+CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;\" & pnpm start:prod" ]

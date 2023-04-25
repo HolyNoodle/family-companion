@@ -2,7 +2,8 @@
   "name": "@famcomp/common",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest --coverage",
@@ -12,7 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dayjs": "^1.11.7"
+    "dayjs": "^1.11.7",
+    "tsconfig": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
