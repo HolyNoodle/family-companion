@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY . .
 
-# RUN pnpm i
+RUN pnpm i
 
 EXPOSE 8099
 
