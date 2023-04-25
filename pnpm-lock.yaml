@@ -137,6 +137,9 @@ importers:
       '@famcomp/home-assistant':
         specifier: '*'
         version: link:../../libs/home-assistant
+      '@famcomp/notification':
+        specifier: '*'
+        version: link:../../libs/notification
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -224,6 +227,28 @@ importers:
       '@types/ws':
         specifier: ^8.5.4
         version: 8.5.4
+      typescript:
+        specifier: ^4.5.2
+        version: 4.5.2
+
+  libs/notification:
+    dependencies:
+      '@famcomp/common':
+        specifier: '*'
+        version: link:../common
+      '@famcomp/home-assistant':
+        specifier: '*'
+        version: link:../home-assistant
+      dayjs:
+        specifier: ^1.11.7
+        version: 1.11.7
+    devDependencies:
+      '@types/jest':
+        specifier: ^29.5.0
+        version: 29.5.0
+      '@types/node':
+        specifier: ^18.15.11
+        version: 18.15.11
       typescript:
         specifier: ^4.5.2
         version: 4.5.2

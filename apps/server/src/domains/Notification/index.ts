@@ -1,91 +1,94 @@
-import { Job, Person, Task } from "@famcomp/common";
-import {
-  HomeAssistantConnection,
-  HomeAssistantMessage,
-} from "@famcomp/home-assistant";
+import { Person, Task, isTaskActive } from "@famcomp/common";
+import { HomeAssistantConnection } from "@famcomp/home-assistant";
+import { HomeAssistantNotificationProvider } from "@famcomp/notification";
+import { AppState } from "../../types";
+import dayjs from "dayjs";
+import { EventEmitter } from "stream";
 
-export type NotificationAction =
-  | {
-      action: "URI";
-      title: string;
-      uri: string;
-    }
-  | { action: string; title: string };
+export default class NotificationManager extends EventEmitter {
+  constructor(
+    private provider: HomeAssistantNotificationProvider,
+    connection: HomeAssistantConnection,
+    private state: AppState
+  ) {
+    super();
 
-export type NotificationInfo =
-  | {
-      message: string;
-      title: string;
-      data?: {
-        persistent?: boolean;
-        sticky?: boolean;
-        tag?: string;
-        actions?: NotificationAction[];
-      };
-    }
-  | {
-      message: "clear_notification";
-    };
+    connection.subscribeToEvent("state_changed");
+    connection.subscribeToEvent("mobile_app_notification_action");
 
-const createNotificationMessage = (
-  taskId: string,
-  jobId: string,
-  target: Person,
-  notification: NotificationInfo,
-  withAction: boolean = true
-): HomeAssistantMessage<NotificationInfo> => {
-  return {
-    type: "call_service",
-    domain: "notify",
-    service: "mobile_app_" + target.id.split(".")[1],
-    service_data: {
-      ...notification,
-      data: {
-        persistent: true,
-        sticky: true as any,
-        tag: taskId,
-        actions: withAction
-          ? [
-              {
-                action: "complete#" + [taskId, jobId, target.id].join("_"),
-                title: "Terminer",
-              },
-              {
-                action: "cancel#" + [taskId, jobId, target.id].join("_"),
-                title: "Annuler",
-              },
-            ]
-          : undefined,
-      },
-    },
-  };
-};
-
-export class HomeAssistantNotificationProvider {
-  constructor(private haConnection: HomeAssistantConnection) {}
-
-  async sendNotification(person: Person, task: Task, job: Job): Promise<any> {
-    const notification = createNotificationMessage(task.id, job.id, person, {
-      title: task.label,
-      message: task.description || "",
-    });
-
-    console.log("Send notification for", person.id, ":", notification);
-    return this.haConnection.send(notification);
+    connection.addListener(
+      "state_changed",
+      this.handleEntityStateChange.bind(this)
+    );
+    connection.addListener(
+      "mobile_app_notification_action",
+      this.handleNotificationAction.bind(this)
+    );
   }
 
-  async clearNotification(person: Person, task: Task, job: Job): Promise<any> {
-    const notification = createNotificationMessage(
-      task.id,
-      job.id,
-      person,
-      {
-        message: "clear_notification",
-      },
-      false
+  private handleEntityStateChange(data: any) {
+    if (!data.entity_id.startsWith("person.")) {
+      return;
+    }
+
+    const stateValue = data.new_state.state as string;
+    const personObject = this.state.persons.find(
+      (p) => p.id === data.entity_id
+    )!;
+    personObject.isHome = stateValue.toLocaleLowerCase() === "home";
+
+    console.log("State changed for", data.entity_id, "is now:", stateValue);
+
+    this.syncPersonNotifications(personObject);
+  }
+
+  private handleNotificationAction(data: { action: string }) {
+    const [action, args] = data.action.split("#");
+    const [taskId, jobId, person] = args.split("_");
+
+    const task = this.state.tasks.find((t) => t.id === taskId);
+
+    if (!task) {
+      console.log("Couldn't find task for this action", action);
+      return;
+    }
+
+    const job = task.jobs?.find((j) => j.id === jobId);
+
+    if (!job) {
+      console.log("Couldn't find job for this action", action);
+      return;
+    }
+
+    this.emit("action", action, task, job, person);
+  }
+
+  syncPersonNotifications(person: Person) {
+    const activeTasks = this.state.tasks.filter(isTaskActive);
+    const inactiveTasks = this.state.tasks.filter(
+      (t) => !isTaskActive(t) && !!t.jobs?.[0]
     );
 
-    console.log("Clear notification for", person.id, ":", notification);
-    return this.haConnection.send(notification);
+    const method = person.isHome
+      ? this.provider.sendNotification.bind(this.provider)
+      : this.provider.clearNotification.bind(this.provider);
+
+    const inactivePromises = inactiveTasks.map((task) =>
+      this.provider.clearNotification(person, task, task.jobs[0])
+    );
+    const activePromises = activeTasks.map((task) =>
+      method(person, task, task.jobs[0])
+    );
+
+    return Promise.all([...activePromises, inactivePromises]);
+  }
+
+  syncNotifications() {
+    console.log("Syncing all tasks notifications");
+    return Promise.all(
+      this.state.persons
+        .filter((p) => p.id === "person.kevin")
+        .map((person) => this.syncPersonNotifications(person))
+    );
   }
 }

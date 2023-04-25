@@ -109,6 +109,25 @@ export class JobScheduler extends EventEmitter {
 
     return job;
   }
+
+  completeJob(job: Job, person: string) {
+    job.completionDate = dayjs();
+
+    if (
+      !job.participations.some(
+        (participation) => participation.person === person
+      )
+    ) {
+      job.participations.push({
+        description: "",
+        person: person as string,
+      });
+    }
+  }
+
+  cancelJob(job: Job) {
+    job.completionDate = dayjs();
+  }
 }
 
 export const getExecutionDates = (
