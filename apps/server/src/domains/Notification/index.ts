@@ -1,8 +1,7 @@
-import { Person, Task, isTaskActive } from "@famcomp/common";
+import { Person, isTaskActive } from "@famcomp/common";
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import { HomeAssistantNotificationProvider } from "@famcomp/notification";
 import { AppState } from "../../types";
-import dayjs from "dayjs";
 import { EventEmitter } from "stream";
 
 export default class NotificationManager extends EventEmitter {

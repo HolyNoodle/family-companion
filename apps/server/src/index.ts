@@ -53,7 +53,7 @@ const start = async () => {
       return;
     }
 
-    console.log("Task trigger through home assistant event", task);
+    console.log("Task trigger through home assistant event", task.id);
     taskScheduler.triggerTask(task);
   });
 

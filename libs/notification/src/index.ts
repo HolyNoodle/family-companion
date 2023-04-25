@@ -70,7 +70,7 @@ export class HomeAssistantNotificationProvider {
       message: task.description || "",
     });
 
-    console.log("Send notification for", person.id, ":", notification);
+    console.log("Send notification for", person.id, "- task", task.id);
     return this.haConnection.send(notification);
   }
 
@@ -85,7 +85,7 @@ export class HomeAssistantNotificationProvider {
       false
     );
 
-    console.log("Clear notification for", person.id, ":", notification);
+    console.log("Clear notification for", person.id, "- task:", task.id);
     return this.haConnection.send(notification);
   }
 }
