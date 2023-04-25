@@ -38,7 +38,7 @@ export default class NotificationManager extends EventEmitter {
 
     console.log("State changed for", data.entity_id, "is now:", stateValue);
 
-    this.syncPersonNotifications(personObject);
+    this.syncPerson(personObject);
   }
 
   private handleNotificationAction(data: { action: string }) {
@@ -69,24 +69,28 @@ export default class NotificationManager extends EventEmitter {
     this.emit("action", action, task, job, person);
   }
 
-  syncPersonNotifications(person: Person) {
-    const activeTasks = this.state.tasks.filter(isTaskActive);
-    const inactiveTasks = this.state.tasks.filter(
-      (t) => !isTaskActive(t) && !!t.jobs?.[0]
-    );
+  syncPersonTask(person: Person, task: Task): Promise<void> {
+    if (isTaskActive(task)) {
+      const method = person.isHome
+        ? this.provider.sendNotification.bind(this.provider)
+        : this.provider.clearNotification.bind(this.provider);
 
-    const method = person.isHome
-      ? this.provider.sendNotification.bind(this.provider)
-      : this.provider.clearNotification.bind(this.provider);
+      return method(person, task, task.jobs[0]);
+    } else {
+      return this.provider.clearNotification(person, task, task.jobs[0]);
+    }
+  }
 
-    const inactivePromises = inactiveTasks.map((task) =>
-      this.provider.clearNotification(person, task, task.jobs[0])
+  async syncTask(task: Task) {
+    await Promise.all(
+      this.state.persons.map((person) => this.syncPersonTask(person, task))
     );
-    const activePromises = activeTasks.map((task) =>
-      method(person, task, task.jobs[0])
-    );
+  }
 
-    return Promise.all([...activePromises, inactivePromises]);
+  async syncPerson(person: Person) {
+    await Promise.all(
+      this.state.tasks.map((task) => this.syncPersonTask(person, task))
+    );
   }
 
   syncNotifications() {
@@ -94,7 +98,7 @@ export default class NotificationManager extends EventEmitter {
     return Promise.all(
       this.state.persons
         // .filter((p) => p.id === "person.kevin")
-        .map((person) => this.syncPersonNotifications(person))
+        .map((person) => this.syncPerson(person))
     );
   }
 }

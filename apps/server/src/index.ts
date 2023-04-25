@@ -59,7 +59,7 @@ const start = async () => {
 
   taskScheduler.on("start_job", (task: Task, job: Job) => {
     console.log("scheduler start job");
-    notification.syncNotifications();
+    notification.syncTask(task);
 
     connection.fireEvent("task_triggered", {
       task,
@@ -93,7 +93,7 @@ const start = async () => {
           break;
       }
 
-      notification.syncNotifications();
+      notification.syncTask(task);
 
       State.set(state);
     }
@@ -106,6 +106,8 @@ const start = async () => {
   });
 
   taskScheduler.start();
+
+  notification.syncNotifications();
 };
 
 start();
