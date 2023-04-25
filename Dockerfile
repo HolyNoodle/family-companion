@@ -6,7 +6,7 @@ RUN npm i -g pnpm
 RUN apt update
 RUN apt install nginx -y && mkdir -p /run/nginx
 
-COPY ./ingress.conf /etc/nginx/sites-enabled/ingress.conf
+COPY ./ingress-ha.conf /etc/nginx/sites-enabled/ingress.conf
 
 WORKDIR /app
 
