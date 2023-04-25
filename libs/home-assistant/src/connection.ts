@@ -13,8 +13,7 @@ export type HomeAssistantMessageRaw<T> =
       type: "get_states";
     }
   | {
-      type: "set_states";
-      data: EntityState<T>;
+      type: "get_config";
     }
   | {
       type: "fire_event";
@@ -48,6 +47,12 @@ export type HomeAssistantResponse =
             state: any;
           };
         };
+      };
+    }
+  | {
+      type: "mobile_app_notification_action";
+      event: {
+        action: string;
       };
     };
 
@@ -133,7 +138,6 @@ export class HomeAssistantConnection extends EventEmitter {
         }
 
         if (event.type === "event") {
-          // console.log("Received event", event);
           this.emit(event.event.event_type, event.event.data);
         }
       };
@@ -169,6 +173,12 @@ export class HomeAssistantConnection extends EventEmitter {
             return entityState.entity_id.startsWith(type);
           })
         : states;
+    });
+  }
+
+  getConfig() {
+    return this.send<EntityState[]>({
+      type: "get_config",
     });
   }
 

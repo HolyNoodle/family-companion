@@ -1,15 +1,16 @@
 import { Job, Person, Task } from "@famcomp/common";
-import { NotificationProvider } from "./types";
 import {
   HomeAssistantConnection,
   HomeAssistantMessage,
 } from "@famcomp/home-assistant";
 
-export interface NotificationAction {
-  action: "URI";
-  title: string;
-  uri: string;
-}
+export type NotificationAction =
+  | {
+      action: "URI";
+      title: string;
+      uri: string;
+    }
+  | { action: string; title: string };
 
 export type NotificationInfo =
   | {
@@ -29,7 +30,7 @@ export type NotificationInfo =
 const createNotificationMessage = (
   taskId: string,
   jobId: string,
-  target: Required<Person>,
+  target: Person,
   notification: NotificationInfo,
   withAction: boolean = true
 ): HomeAssistantMessage<NotificationInfo> => {
@@ -46,14 +47,12 @@ const createNotificationMessage = (
         actions: withAction
           ? [
               {
-                action: "URI",
+                action: "complete#" + [taskId, jobId, target.id].join("_"),
                 title: "Terminer",
-                uri: `http://192.168.1.34:8099/api/tasks/action?action=COMPLETE&taskId=${taskId}&jobId=${jobId}&person=${target.id}`,
               },
               {
-                action: "URI",
+                action: "cancel#" + [taskId, jobId, target.id].join("_"),
                 title: "Annuler",
-                uri: `http://192.168.1.34:8099/api/tasks/action?action=CANCEL&taskId=${taskId}&jobId=${jobId}&person=${target.id}`,
               },
             ]
           : undefined,
@@ -79,7 +78,7 @@ export class HomeAssistantNotificationProvider {
     const notification = createNotificationMessage(
       task.id,
       job.id,
-      person as Required<Person>,
+      person,
       {
         message: "clear_notification",
       },

@@ -49,6 +49,7 @@ app.listen(PORT, async () => {
   state.persons = await connection.getPersons();
 
   connection.subscribeToEvent("state_changed");
+  connection.subscribeToEvent("mobile_app_notification_action");
   connection.addListener("state_changed", (data) => {
     if (!data.entity_id.startsWith("person.")) {
       return;
@@ -87,7 +88,11 @@ app.listen(PORT, async () => {
 
   const syncNotifications = () => {
     console.log("Syncing all tasks notifications");
-    return Promise.all(state.persons.map(syncPersonNotifications));
+    return Promise.all(
+      state.persons
+        .filter((p) => p.id === "person.kevin")
+        .map(syncPersonNotifications)
+    );
   };
 
   connection.subscribeToEvent("trigger_task");
@@ -121,71 +126,61 @@ app.listen(PORT, async () => {
     res.send(state.tasks).end();
   });
 
-  app.get("/tasks/action", async (req, res) => {
-    if (!req.query.taskId) {
-      console.log("no id");
-      res.writeHead(400, "Task Id is required");
-      res.end();
-      return;
-    }
-    const state = await State.get();
+  connection.addListener(
+    "mobile_app_notification_action",
+    (data: { action: string }) => {
+      const [action, args] = data.action.split("#");
+      const [taskId, jobId, person] = args.split("_");
 
-    const task = state.tasks.find((t) => t.id === req.query.taskId);
+      const task = state.tasks.find((t) => t.id === taskId);
 
-    if (!task) {
-      console.log("no task");
+      if (!task) {
+        console.log("no task");
+        return;
+      }
 
-      res.writeHead(404, "Task not found");
-      res.end();
-      return;
-    }
+      const job = task.jobs?.find((j) => j.id === jobId);
 
-    const job = task.jobs?.find((j) => j.id === req.query.jobId);
+      if (!job) {
+        console.log("no job");
+        return;
+      }
 
-    if (!job) {
-      console.log("no job");
+      switch (action) {
+        case "complete":
+          job.completionDate = dayjs();
 
-      res.writeHead(404, "Job not found");
-      res.end();
-      return;
-    }
-
-    switch (req.query.action) {
-      case "COMPLETE":
-        job.completionDate = dayjs();
-
-        connection.fireEvent("task_completed", {
-          task,
-          job,
-        });
-      case "PARTICIPATE":
-        if (
-          !job.participations.some(
-            (participation) => participation.person === req.query.person
-          )
-        ) {
-          job.participations.push({
-            description: req.body.description,
-            person: req.query.person as string,
+          connection.fireEvent("task_completed", {
+            task,
+            job,
           });
-        }
-        break;
-      case "CANCEL":
-        job.completionDate = dayjs();
 
-        connection.fireEvent("task_canceled", {
-          task,
-          job,
-        });
-        break;
+          if (
+            !job.participations.some(
+              (participation) => participation.person === person
+            )
+          ) {
+            job.participations.push({
+              description: "",
+              person: person as string,
+            });
+          }
+          break;
+        case "cancel":
+          job.completionDate = dayjs();
+
+          connection.fireEvent("task_canceled", {
+            task,
+            job,
+          });
+          break;
+      }
+
+      syncNotifications();
+
+      State.set(state);
     }
-
-    syncNotifications();
-
-    State.set(state);
-
-    res.send(true).end();
-  });
+  );
 
   app.post("/tasks", (req, res) => {
     const task: Task = req.body;
