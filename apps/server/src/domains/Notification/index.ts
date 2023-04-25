@@ -1,4 +1,4 @@
-import { Person, isTaskActive } from "@famcomp/common";
+import { Job, Person, Task, isTaskActive } from "@famcomp/common";
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import { HomeAssistantNotificationProvider } from "@famcomp/notification";
 import { AppState } from "../../types";
@@ -57,6 +57,12 @@ export default class NotificationManager extends EventEmitter {
 
     if (!job) {
       console.log("Couldn't find job for this action", action);
+      console.log("Clearing notification for this job for this person");
+      this.provider.clearNotification(
+        { id: person } as Person,
+        { id: taskId } as Task,
+        { id: jobId } as Job
+      );
       return;
     }
 
@@ -87,7 +93,7 @@ export default class NotificationManager extends EventEmitter {
     console.log("Syncing all tasks notifications");
     return Promise.all(
       this.state.persons
-        .filter((p) => p.id === "person.kevin")
+        // .filter((p) => p.id === "person.kevin")
         .map((person) => this.syncPersonNotifications(person))
     );
   }

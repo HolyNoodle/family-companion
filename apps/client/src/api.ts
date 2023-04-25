@@ -7,11 +7,13 @@ export interface JobSchedule extends Task {
 
 class API {
   host: string;
+  baseURL: string;
   constructor() {
     this.host = window.location.host;
+    this.baseURL = window.location.pathname || "/";
   }
   buildURL(path: string) {
-    return `http://${this.host}/api${path}`;
+    return `http://${this.host}${this.baseURL}api${path}`;
   }
   getTasks(): Promise<Task[]> {
     return fetch(this.buildURL("/tasks"))
@@ -21,7 +23,7 @@ class API {
       .then((json) => {
         return json.map((task) => ({
           ...task,
-          startDate: dayjs(task.startDate),
+          startDate: dayjs(task.startDate)
         }));
       });
   }
@@ -30,7 +32,7 @@ class API {
       method: "POST",
       body: JSON.stringify({
         ...task,
-        startDate: task.startDate?.toISOString(),
+        startDate: task.startDate?.toISOString()
       }),
       headers: {
         "Content-type": "application/json"
