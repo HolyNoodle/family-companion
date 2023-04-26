@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start:dev": "concurrently --kill-others \"cd ./apps/server && pnpm start:dev\" \"cd ./apps/client && pnpm start:dev\"",
-    "build:prod": "docker build . -f Dockerfile.prod -t holynoodledev/family-companion"
+    "build:prod": "docker build . -f Dockerfile -t holynoodledev/family-companion"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
