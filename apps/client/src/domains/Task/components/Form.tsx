@@ -119,6 +119,11 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
             {
               validator(_, value) {
                 return new Promise<void>((resolve, reject) => {
+                  if(!value) {
+                    resolve();
+                    return;
+                  }
+                  
                   try {
                     parse(value);
                     resolve();
