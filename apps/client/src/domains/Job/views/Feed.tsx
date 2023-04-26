@@ -160,7 +160,7 @@ const Feed = () => {
                     <span>
                       Finished:{" "}
                       {event.job?.completionDate?.format("HH:mm") ||
-                        (isJobActive(event.task, event.job) ? "In progress" : "Missed")}
+                        (event.job && isJobActive(event.task, event.job) ? "In progress" : "Missed")}
                     </span>
                     <span>
                       {event.job?.participations?.map((participation) => participation.person)}

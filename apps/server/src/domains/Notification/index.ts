@@ -77,8 +77,12 @@ export default class NotificationManager extends EventEmitter {
 
       return method(person, task, task.jobs[0]);
     } else {
-      return this.provider.clearNotification(person, task, task.jobs[0]);
+      if (task.jobs?.[0]) {
+        return this.provider.clearNotification(person, task, task.jobs[0]);
+      }
     }
+
+    return Promise.resolve();
   }
 
   async syncTask(task: Task) {

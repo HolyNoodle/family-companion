@@ -1,12 +1,14 @@
-FROM node:18
+FROM node:alpine
 
 RUN npm i -g pnpm
 
-#Add nginx and create the run folder for nginx.
-RUN apt update
-RUN apt install nginx -y && mkdir -p /run/nginx
+RUN yarn global add turbo
 
-COPY ./ingress.conf /etc/nginx/sites-enabled/ingress.conf
+RUN apk update
+RUN apk add bash nginx 
+RUN mkdir -p /run/nginx
+
+COPY ./ingress.conf /etc/nginx/nginx.conf
 
 WORKDIR /app
 
@@ -15,4 +17,4 @@ EXPOSE 8099
 ENV STORAGE_PATH /data/db
 ENV SUPERVISOR_URL supervisor/core
 
-CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;error_log /dev/stdout info;\" & pnpm start:dev" ]
+CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;error_log /dev/stdout info;\" & turbo start:dev" ]
