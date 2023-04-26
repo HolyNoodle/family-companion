@@ -36,11 +36,11 @@ export const useEvents = (tasks: Task[], start: Date, end: Date) => {
               } as EventItem)
           ) || [];
 
-      return [...pastIterations, ...nextIterations].sort(
-        (a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()
-      );
+      return [...pastIterations, ...nextIterations];
     });
 
-    return iterations.flat();
+    return iterations.flat().sort(
+      (a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()
+    );
   }, [tasks]);
 };
