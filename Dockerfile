@@ -1,35 +1,32 @@
-FROM node:alpine as builder
-
-RUN npm i -g pnpm
-
+FROM node:alpine AS builder
 WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
+RUN apk update
+
+RUN yarn global add turbo
+RUN npm i -g pnpm
 
 COPY . .
 
-RUN pnpm install turbo -w
 RUN pnpm install
-RUN pnpm dlx turbo build
+ 
+# Build the project
+RUN turbo run build
 
 FROM node:alpine as runner 
+WORKDIR /app
 
 RUN npm i -g pnpm
-
-#Add bash and nginx and create the run folder for nginx.
-RUN apk update && apk add bash nginx && mkdir -p /run/nginx
+RUN apk update
+RUN apk add bash nginx 
+RUN mkdir -p /run/nginx
 
 COPY ./ingress-ha.conf /etc/nginx/nginx.conf
 
-WORKDIR /app
-
-COPY . .
-
-RUN mkdir -p /app/apps/client/dist
-RUN mkdir -p /app/apps/server/dist
+COPY --from=builder /app .
 
 RUN pnpm install --production
-
-COPY --from=builder /app/apps/client/dist /app/apps/client/dist
-COPY --from=builder /app/apps/server/dist /app/apps/server/dist
 
 EXPOSE 8099
 
