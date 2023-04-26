@@ -32,15 +32,6 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
     task?.startDate && handleCronChange(task.cron || generateCronString(task.startDate.toDate()));
   }, [task]);
 
-  const handleStartDateChange = (startDate: dayjs.Dayjs) => {
-    const cron = generateCronString(startDate.toDate());
-    form.setFieldsValue({
-      cron,
-      startDate
-    });
-    handleCronChange(cron);
-  };
-
   const handleCronChange = (cron: string) => {
     try {
       const nextIterations = getFutureMatches(cron, {
@@ -54,6 +45,18 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
     }
   };
 
+  const handleLabelChange = (label: string) => {
+    form.setFieldValue(
+      "id",
+      label
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase()
+        .replaceAll(" ", "_")
+    );
+    form.setFieldValue("label", label);
+  };
+
   return (
     <Form
       form={form}
@@ -64,7 +67,10 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
       initialValues={{
         ...task,
         startDate: dayjs(task?.startDate),
-        cron: task?.cron || (task?.startDate && generateCronString(task!.startDate.toDate())) || undefined
+        cron:
+          task?.cron ||
+          (task?.startDate && generateCronString(task!.startDate.toDate())) ||
+          undefined
       }}
       onFinish={onSubmit}
       autoComplete="off"
@@ -79,23 +85,23 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
         onCancel={onClose}
         onOk={form.submit}
       >
-         <Form.Item
-          label="Id"
-          name="id"
-          rules={[{required: true, message: "Please input an id for the task"}]}
-        >
-          <Input />
-        </Form.Item>
         <Form.Item
           label="Label"
           name="label"
           rules={[{required: true, message: "Please input a label for the task"}]}
         >
-          <Input />
+          <Input onChange={!task?.id ? (e) => handleLabelChange(e.target.value) : undefined} />
+        </Form.Item>
+        <Form.Item
+          label="Id"
+          name="id"
+          rules={[{required: true, message: "Please input an id for the task"}]}
+        >
+          <Input disabled={!!task?.id} />
         </Form.Item>
 
         <Form.Item label="Date" name="startDate">
-          <DatePicker showTime={{format: "HH:mm"}} onChange={handleStartDateChange} />
+          <DatePicker showTime={{format: "HH:mm"}} />
         </Form.Item>
 
         <Form.Item label="Description" name="description">
@@ -119,7 +125,7 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
             {
               validator(_, value) {
                 return new Promise<void>((resolve, reject) => {
-                  if(!value) {
+                  if (!value) {
                     resolve();
                     return;
                   }
