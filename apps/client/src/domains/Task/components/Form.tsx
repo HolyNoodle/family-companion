@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react";
 import {Form, Input, DatePicker, Modal} from "antd";
-import {Task, WithId} from "@famcomp/common";
+import {Task} from "@famcomp/common";
 import dayjs from "dayjs";
 import {parse} from "@datasert/cronjs-parser";
 import {getFutureMatches} from "@datasert/cronjs-matcher";
@@ -123,7 +123,7 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
                     resolve();
                     return;
                   }
-                  
+
                   try {
                     parse(value);
                     resolve();

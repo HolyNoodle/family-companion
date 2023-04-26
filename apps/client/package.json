@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@famcomp/common": "*",
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
@@ -36,10 +37,10 @@
     "typescript": "^5.0.4",
     "webpack": "^5.79.0",
     "webpack-cli": "^5.0.1",
-    "webpack-dev-server": "^4.13.3",
-    "@famcomp/common": "*"
+    "webpack-dev-server": "^4.13.3"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.0.1",
     "@datasert/cronjs-matcher": "^1.2.0",
     "@datasert/cronjs-parser": "^1.2.0",
     "@reduxjs/toolkit": "^1.9.5",

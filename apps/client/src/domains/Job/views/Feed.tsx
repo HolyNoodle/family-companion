@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from "react";
+import React, {useEffect, useMemo, useRef} from "react";
 import {useSelector} from "react-redux";
 import styled from "styled-components";
 
@@ -6,11 +6,7 @@ import {useAppDispatch} from "src/store";
 
 import {fetchTasks, selectAllTasks, selectTasksStatus} from "src/domains/Task/state";
 import {useEvents} from "../utils";
-import {Button} from "antd";
 import dayjs from "dayjs";
-import TaskForm from "src/domains/Task/components/Form";
-import {Task} from "@famcomp/common";
-import api from "src/api";
 import FeedDay from "../components/FeedDay";
 
 const FeedContainer = styled.div`
@@ -49,7 +45,7 @@ const Feed = () => {
   const start = useMemo(() => {
     const now = new Date();
 
-    now.setDate(now.getDate() - PAST);
+    // now.setDate(now.getDate() - PAST);
     now.setHours(0);
     now.setMinutes(0);
     now.setSeconds(0);
@@ -70,21 +66,6 @@ const Feed = () => {
   end.setDate(end.getDate() + 1);
 
   const computedEvents = useEvents(tasks, start, end);
-  const [create, setCreate] = useState(false);
-  const [edit, setEdit] = useState<Task>(undefined);
-  const [creating, setCreating] = useState(false);
-
-  const handleSubmit = async (task: Task) => {
-    setCreating(true);
-    try {
-      await api.pushTask(task);
-      setCreate(false);
-      setEdit(undefined);
-      dispatch(fetchTasks());
-    } finally {
-      setCreating(false);
-    }
-  };
 
   return (
     <FeedContainer
@@ -92,51 +73,6 @@ const Feed = () => {
         feedContainerRef.current = el;
       }}
     >
-      <TaskForm
-        submitting={creating}
-        open={!!edit}
-        task={edit}
-        onSubmit={handleSubmit}
-        onClose={() => setEdit(undefined)}
-      />
-      <TaskForm
-        submitting={creating}
-        open={create}
-        onSubmit={handleSubmit}
-        onClose={() => setCreate(false)}
-      />
-      <Button
-        onClick={() => {
-          setEdit(undefined);
-          setCreate(true);
-        }}
-      >
-        Add task
-      </Button>
-      {tasks.map((task) => {
-        return (
-          <div key={task.id}>
-            {task.label}{" "}
-            <Button
-              onClick={() => {
-                setEdit(task);
-                setCreate(false);
-              }}
-            >
-              Edit
-            </Button>
-            <Button
-              onClick={async () => {
-                await api.deleteTask(task.id);
-                dispatch(fetchTasks());
-              }}
-            >
-              Delete
-            </Button>
-          </div>
-        );
-      })}
-
       {days.map((date) => {
         const dayEvents = computedEvents
           .filter((e) => e.date.isSame(date, "day"))

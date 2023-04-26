@@ -4,6 +4,7 @@ import {createBrowserRouter} from "react-router-dom";
 import Week from "./domains/Job/views/Week";
 import Feed from "./domains/Job/views/Feed";
 import MainLayout from "./domains/Layout/components/MainLayout";
+import TaskList from "./domains/Task/views/List";
 
 const router = () => {
   const basename = useMemo(() => {
@@ -29,12 +30,8 @@ const router = () => {
               element: <Feed />
             },
             {
-              path: "dashboard",
-              element: <Feed />
-            },
-            {
-              path: "week",
-              element: <Week />
+              path: "tasks",
+              element: <TaskList />
             }
           ]
         }

@@ -1,29 +1,62 @@
 import React, {useMemo} from "react";
 import styled from "styled-components";
 
-import {Space, Typography} from "antd";
+import {Popover, Space, Typography} from "antd";
 import {isJobActive} from "@famcomp/common";
 import {EventItem} from "./Event";
 import dayjs from "dayjs";
+import {
+  CheckOutlined,
+  ClockCircleOutlined,
+  CloseOutlined,
+  ExclamationCircleOutlined,
+  MinusOutlined
+} from "@ant-design/icons";
 
-const EventContainer = styled.div<{color: string}>`
-  height: 2em;
+const Hour = styled.span`
+  color: grey;
+  font-size: 0.9em;
+`;
+
+const EventContainer = styled.div`
   display: flex;
   align-items: center;
-  border-left: 0.3em solid ${({color}) => color};
-  padding-left: 0.3em;
+  padding: 0.3em 0;
 
   & + & {
     margin-top: 0.3em;
   }
+  > * {
+    width: 100%;
+  }
+`;
+const TaskLabel = styled(Typography.Text)`
+  width: 100%;
+  font-size: 1.2em;
+  flex: 1;
+`;
+
+const RowContainer = styled.div`
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
 `;
 
 const colors = {
-  completed: "rgba(0, 255, 0, 0.7)",
+  completed: "rgba(64, 128, 64, 1)",
   cancelled: "grey",
   missed: "darkred",
   pending: "blue",
-  coming: "white"
+  coming: "grey"
+};
+
+const icons = {
+  completed: CheckOutlined,
+  cancelled: MinusOutlined,
+  missed: CloseOutlined,
+  pending: ExclamationCircleOutlined,
+  coming: ClockCircleOutlined
 };
 
 const FeedEvent = ({event}: {event: EventItem}) => {
@@ -44,22 +77,35 @@ const FeedEvent = ({event}: {event: EventItem}) => {
     return dayjs().isAfter(event.date) ? "missed" : "coming";
   }, [event]) as keyof typeof colors;
 
-  return (
-    <EventContainer color={colors[mode]}>
-      <Space>
-        <span>{event.date.format("HH:mm")}</span>
-        <Typography.Text strong>{event.task.label}</Typography.Text>
-        <span>{mode}</span>
-        {(mode === "completed" || mode === "cancelled") && (
-          <>
-            <span>
-              {event.job?.completionDate?.format("HH:mm") ||
-                (event.job && isJobActive(event.task, event.job) ? "In progress" : "Missed")}
-            </span>
+  const Icon = icons[mode];
+
+  const tooltip = useMemo(() => {
+    switch (mode) {
+      case "cancelled":
+      case "completed":
+        return (
+          <Space>
+            <span>{event.job?.completionDate?.format("HH:mm")}</span>
             <span>{event.job?.participations?.map((participation) => participation.person)}</span>
-          </>
-        )}
-      </Space>
+          </Space>
+        );
+      case "coming":
+      case "missed":
+      case "pending":
+        return undefined;
+    }
+  }, [mode]);
+
+  return (
+    <EventContainer>
+      <RowContainer>
+        <Popover title={mode} content={tooltip}>
+          <Icon style={{color: colors[mode], fontSize: "1.3em"}} />
+        </Popover>
+        <Hour>{event.date.format("HH:mm")}</Hour>
+
+        <TaskLabel strong>{event.task.label}</TaskLabel>
+      </RowContainer>
     </EventContainer>
   );
 };
