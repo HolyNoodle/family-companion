@@ -10,7 +10,7 @@ export const useEvents = (tasks: Task[], start: Date, end: Date) => {
       const nextIterations =
         (task.cron &&
           getFutureMatches(task.cron, {
-            startAt: start.toISOString(),
+            startAt: new Date().toISOString(),
             endAt: end.toISOString(),
             matchCount: 50
           }).map(
@@ -25,7 +25,7 @@ export const useEvents = (tasks: Task[], start: Date, end: Date) => {
       const pastIterations =
         task.jobs
           .filter((job) => {
-            return job.date.isAfter(start, "minute") && job.date.isBefore(end, "minute");
+            return job.date.isAfter(start, "minute") && job.date.isBefore(new Date(), "minute");
           })
           .map(
             (job) =>
@@ -37,7 +37,7 @@ export const useEvents = (tasks: Task[], start: Date, end: Date) => {
           ) || [];
 
       return [...pastIterations, ...nextIterations].sort(
-        (a, b) => a.date.utcOffset() - b.date.utcOffset()
+        (a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()
       );
     });
 

@@ -72,8 +72,8 @@ const Feed = () => {
     });
   }, [start]);
 
-  const end = new Date(start);
-  end.setDate(end.getDate() + 3);
+  const end = new Date(days[days.length - 1]);
+  end.setDate(end.getDate() + 1);
 
   const computedEvents = useEvents(tasks, start, end);
   const [create, setCreate] = useState(false);

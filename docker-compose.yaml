@@ -9,6 +9,7 @@ services:
       - SUPERVISOR_URL=192.168.1.35:8123/api
     ports:
       - 8099:8099
+      - 8080:8080
     volumes:
       - ./:/app:rw
       - ./docker_data:/data
