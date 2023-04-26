@@ -39,3 +39,5 @@ yarn-error.log*
 tmp
 dist
 docker_data
+
+password.txt

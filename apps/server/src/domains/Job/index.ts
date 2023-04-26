@@ -18,7 +18,7 @@ export class JobScheduler extends EventEmitter {
   start() {
     this.taskIds = {};
 
-    this.schedulerTimer = setInterval(this.schedulerProcess, 60 * 60 * 1000);
+    this.schedulerTimer = setInterval(this.schedulerProcess.bind(this), 60 * 60 * 1000);
     this.schedulerProcess();
   }
 
