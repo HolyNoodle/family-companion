@@ -30,4 +30,4 @@ EXPOSE 8099
 ENV STORAGE_PATH /data/db
 ENV SUPERVISOR_URL supervisor/core
 
-CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;error_log /dev/stdout info;\" & npm run start:prod" ]
+CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;\" & node ./apps/server/dist/index.js" ]
