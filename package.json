@@ -1,7 +1,6 @@
 {
   "scripts": {
-    "docker:login": "cat ./password.txt | docker login -u holynoodledev --password-stdin",
-    "build:prod": "docker build . -f Dockerfile.prod -t holynoodledev/family-companion"
+    "build:prod": "sh ./build.sh"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
