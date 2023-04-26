@@ -3,12 +3,12 @@ version: "2"
 services:
   app:
     build:
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev
     environment:
       - SUPERVISOR_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI3ODRlYjdiYjhkN2Q0ZTA0YTA4MDc3MmU5N2U1NGRjYSIsImlhdCI6MTY4MTczNjIyNCwiZXhwIjoxOTk3MDk2MjI0fQ.DTVGs1mTT8276aFgT64KxCUlZPqX5gPbCGYBNkyV4Wo
       - SUPERVISOR_URL=192.168.1.35:8123/api
     ports:
       - 8099:8099
     volumes:
-      # - ./:/app:rw
+      - ./:/app:rw
       - ./docker_data:/data
