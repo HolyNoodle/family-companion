@@ -4,7 +4,7 @@ import {Task, WithId} from "@famcomp/common";
 import {EventItem} from "./components/Event";
 import dayjs from "dayjs";
 
-export const useEvents = (tasks: Task[], start: Date, end: Date) => {
+export const useEvents = (tasks: Task[], start: Date, end: Date, desc = false) => {
   return useMemo(() => {
     const iterations = tasks.map((task) => {
       const nextIterations =
@@ -39,8 +39,16 @@ export const useEvents = (tasks: Task[], start: Date, end: Date) => {
       return [...pastIterations, ...nextIterations];
     });
 
-    return iterations.flat().sort(
-      (a, b) => a.date.toDate().getTime() - b.date.toDate().getTime()
-    );
+    return iterations.flat().sort((a, b) => (a.date.toDate().getTime() - b.date.toDate().getTime()) * (desc ? -1 : 1));
   }, [tasks]);
+};
+
+export const useDayRange = (start: Date, numberOfDays: number) => {
+  return useMemo(() => {
+    return Array.from({length: numberOfDays}, (_, i) => i).map((i: number) => {
+      const day = new Date(start);
+      day.setDate(day.getDate() + i);
+      return day;
+    });
+  }, [start, numberOfDays]);
 };

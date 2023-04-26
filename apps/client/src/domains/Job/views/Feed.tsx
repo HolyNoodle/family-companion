@@ -5,7 +5,7 @@ import styled from "styled-components";
 import {useAppDispatch} from "src/store";
 
 import {fetchTasks, selectAllTasks, selectTasksStatus} from "src/domains/Task/state";
-import {useEvents} from "../utils";
+import {useDayRange, useEvents} from "../utils";
 import dayjs from "dayjs";
 import FeedDay from "../components/FeedDay";
 
@@ -54,13 +54,7 @@ const Feed = () => {
     return now;
   }, []);
 
-  const days = useMemo(() => {
-    return Array.from({length: FUTURE + PAST}, (_, i) => i).map((i: number) => {
-      const day = new Date(start);
-      day.setDate(day.getDate() + i);
-      return day;
-    });
-  }, [start]);
+  const days = useDayRange(start, FUTURE + PAST);
 
   const end = new Date(days[days.length - 1]);
   end.setDate(end.getDate() + 1);

@@ -13,6 +13,7 @@ const MainLayout = () => (
       <Space>
         <Link to={"/"}>Feed</Link>
         <Link to={"/tasks"}>Tasks</Link>
+        <Link to={"/dashboard"}>Dashboard</Link>
       </Space>
     </Layout.Header>
     <Layout.Content>

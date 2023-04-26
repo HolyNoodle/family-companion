@@ -1,10 +1,10 @@
 import React, {useMemo} from "react";
 import {createBrowserRouter} from "react-router-dom";
 
-import Week from "./domains/Job/views/Week";
 import Feed from "./domains/Job/views/Feed";
 import MainLayout from "./domains/Layout/components/MainLayout";
 import TaskList from "./domains/Task/views/List";
+import Dashboard from "./domains/Stats/views/Dashboard";
 
 const router = () => {
   const basename = useMemo(() => {
@@ -32,6 +32,10 @@ const router = () => {
             {
               path: "tasks",
               element: <TaskList />
+            },
+            {
+              path: "dashboard",
+              element: <Dashboard />
             }
           ]
         }
