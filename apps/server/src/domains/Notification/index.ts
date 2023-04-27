@@ -72,6 +72,12 @@ export default class NotificationManager extends EventEmitter {
       return;
     }
 
+    if (action === "trigger") {
+      this.emit("action", action, task);
+
+      return;
+    }
+
     const job = task.jobs?.find((j) => j.id === jobId);
 
     if (!job) {
@@ -90,12 +96,24 @@ export default class NotificationManager extends EventEmitter {
   }
 
   private getPersonShortId(person: Person) {
-    return person.id.split('.')[1];
+    return person.id.split(".")[1];
   }
 
   syncPersonTask(person: Person, task: Task): Promise<void> {
     const notification = new MobileNotificationBuilder();
     notification.target(person.id.split(".")[1]).tag(task.id).clear();
+
+    if (task.quickAction) {
+      this.createTaskTriggerNotificationAction(person, task);
+    } else {
+      const notification = new MobileNotificationBuilder()
+        .clear()
+        .tag("quick_" + task.id)
+        .target(this.getPersonShortId(person))
+        .build();
+
+      this.connection.send(notification);
+    }
 
     if (isTaskActive(task)) {
       if (person.isHome) {
@@ -105,11 +123,21 @@ export default class NotificationManager extends EventEmitter {
           .persist(true)
           .stick(true)
           .action({
-            action: ["complete", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
+            action: [
+              "complete",
+              task.id,
+              task.jobs[0].id,
+              this.getPersonShortId(person),
+            ].join("."),
             title: this.translator.translations.notifications.actions.complete,
           })
           .action({
-            action: ["cancel", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
+            action: [
+              "cancel",
+              task.id,
+              task.jobs[0].id,
+              this.getPersonShortId(person),
+            ].join("."),
             title: this.translator.translations.notifications.actions.cancel,
           })
           .channelMode(ChannelMode.Default);
@@ -130,10 +158,27 @@ export default class NotificationManager extends EventEmitter {
       this.state.tasks.map((task) => this.syncPersonTask(person, task))
     );
 
-    await this.createNotificationAction(person);
+    await this.createQuickCreateNotificationAction(person);
   }
 
-  createNotificationAction(person: Person) {
+  createTaskTriggerNotificationAction(person: Person, task: Task) {
+    const notification = new MobileNotificationBuilder()
+      .title(this.translator.translations.notifications.actions.quick.title + " - " + task.label)
+      .message("")
+      .tag("quick_" + task.id)
+      .target(this.getPersonShortId(person))
+      .persist(true)
+      .stick(true)
+      .action({
+        action: ["trigger", task.id].join("."),
+        title: this.translator.translations.notifications.actions.quick.action,
+      })
+      .channelMode(ChannelMode.Action);
+
+    return this.connection.send(notification.build());
+  }
+
+  createQuickCreateNotificationAction(person: Person) {
     const notification = new MobileNotificationBuilder()
       .title(this.translator.translations.notifications.actions.todo.title)
       .message("")
@@ -147,14 +192,13 @@ export default class NotificationManager extends EventEmitter {
       })
       .channelMode(ChannelMode.Action);
 
-    this.connection.send(notification.build());
+    return this.connection.send(notification.build());
   }
 
   syncNotifications() {
     console.log("Syncing all tasks notifications");
     return Promise.all(
-      this.state.persons
-        .map((person) => this.syncPerson(person))
+      this.state.persons.map((person) => this.syncPerson(person))
     );
   }
 }

@@ -46,6 +46,7 @@ const TaskList = () => {
   const [creating, setCreating] = useState(false);
 
   const handleSubmit = async (task: Task) => {
+    console.log(task);
     setCreating(true);
     try {
       await api.pushTask(task);

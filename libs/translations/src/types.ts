@@ -9,6 +9,10 @@ export interface Locale {
         title: string;
         action: string;
       };
+      quick: {
+        title: string;
+        action: string;
+      };
       complete: string;
       cancel: string;
     };
@@ -26,6 +30,7 @@ export interface Locale {
       cronIterations: string;
       label: string;
       description: string;
+      quickAction: string;
     };
     actions: {
       create: string;

@@ -12,6 +12,7 @@ export interface Task extends WithId {
   startDate: Dayjs;
   active: boolean;
   jobs: Job[];
+  quickAction?: boolean;
 }
 
 export interface Job extends WithId {
