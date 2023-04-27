@@ -19,7 +19,7 @@ describe("AppState", () => {
     State.setPath("test/path");
     State.set(undefined as any);
     jest.useFakeTimers();
-    jest.setSystemTime(new Date(2023, 0, 1, 2, 4, 2, 345));
+    jest.setSystemTime(new Date(Date.UTC(2023, 0, 1, 2, 4, 2, 345)));
     jest.resetAllMocks();
   });
 
@@ -77,7 +77,7 @@ describe("AppState", () => {
         {
           active: true,
           jobs: [],
-          startDate: "2023-01-01T01:04:02.345Z",
+          startDate: "2023-01-01T02:04:02.345Z",
           cron: "",
           id: "fd",
           label: "",
@@ -124,7 +124,7 @@ describe("AppState", () => {
         {
           active: true,
           jobs: [],
-          startDate: dayjs("2023-01-01T01:04:02.345Z"),
+          startDate: dayjs("2023-01-01T02:04:02.345Z"),
           cron: "",
           id: "fd",
           label: "",
@@ -170,7 +170,7 @@ describe("AppState", () => {
         {
           active: true,
           jobs: [],
-          startDate: dayjs("2023-01-01T01:04:02.345Z"),
+          startDate: dayjs("2023-01-01T02:04:02.345Z"),
           cron: "",
           id: "fd",
           label: "",
