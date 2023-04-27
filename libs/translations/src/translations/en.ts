@@ -6,10 +6,7 @@ export default {
   time: "LT",
   notifications: {
     actions: {
-      quick: {
-        action: "Trigger",
-        title: "Quick action"
-      },
+      quick: "Quick actions",
       todo: {
         title: "Create a todo task",
         action: "Create",

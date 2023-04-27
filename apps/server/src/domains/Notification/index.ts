@@ -49,19 +49,6 @@ export default class NotificationManager extends EventEmitter {
     tag: string;
     reply_text: string;
   }) {
-    if (data.action === "REPLY") {
-      if (data.tag === "task.action.todo") {
-        this.emit("new_task", {
-          id: v4(),
-          jobs: [],
-          label: data.reply_text,
-          startDate: dayjs(),
-          active: true,
-        } as Task);
-      }
-      return;
-    }
-
     const [action, taskId, jobId, person] = data.action.split(".");
     console.log("received action", action, taskId, jobId, person);
 
@@ -102,18 +89,6 @@ export default class NotificationManager extends EventEmitter {
   syncPersonTask(person: Person, task: Task): Promise<void> {
     const notification = new MobileNotificationBuilder();
     notification.target(person.id.split(".")[1]).tag(task.id).clear();
-
-    if (task.quickAction) {
-      this.createTaskTriggerNotificationAction(person, task);
-    } else {
-      const notification = new MobileNotificationBuilder()
-        .clear()
-        .tag("quick_" + task.id)
-        .target(this.getPersonShortId(person))
-        .build();
-
-      this.connection.send(notification);
-    }
 
     if (isTaskActive(task)) {
       if (person.isHome) {
@@ -158,39 +133,36 @@ export default class NotificationManager extends EventEmitter {
       this.state.tasks.map((task) => this.syncPersonTask(person, task))
     );
 
-    await this.createQuickCreateNotificationAction(person);
+    await this.createQuickActionNotificationAction(person);
   }
 
-  createTaskTriggerNotificationAction(person: Person, task: Task) {
+  createQuickActionNotificationAction(person: Person) {
+    const quickTasks = this.state.tasks.filter((t) => t.quickAction);
     const notification = new MobileNotificationBuilder()
-      .title(this.translator.translations.notifications.actions.quick.title + " - " + task.label)
+      .tag("quick")
+      .target(this.getPersonShortId(person));
+
+    if (quickTasks.length === 0) {
+      notification.clear();
+
+      return this.connection.send(notification.build());
+    }
+
+    notification
+      .title(this.translator.translations.notifications.actions.quick)
       .message("")
-      .tag("quick_" + task.id)
+      .tag("quick")
       .target(this.getPersonShortId(person))
       .persist(true)
       .stick(true)
-      .action({
+      .channelMode(ChannelMode.Action);
+
+    quickTasks.forEach((task) =>
+      notification.action({
         action: ["trigger", task.id].join("."),
-        title: this.translator.translations.notifications.actions.quick.action,
+        title: task.label,
       })
-      .channelMode(ChannelMode.Action);
-
-    return this.connection.send(notification.build());
-  }
-
-  createQuickCreateNotificationAction(person: Person) {
-    const notification = new MobileNotificationBuilder()
-      .title(this.translator.translations.notifications.actions.todo.title)
-      .message("")
-      .tag("task.action.todo")
-      .target(this.getPersonShortId(person))
-      .persist(true)
-      .stick(true)
-      .action({
-        action: "REPLY",
-        title: this.translator.translations.notifications.actions.todo.action,
-      })
-      .channelMode(ChannelMode.Action);
+    );
 
     return this.connection.send(notification.build());
   }

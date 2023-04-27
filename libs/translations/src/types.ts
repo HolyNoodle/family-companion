@@ -9,10 +9,7 @@ export interface Locale {
         title: string;
         action: string;
       };
-      quick: {
-        title: string;
-        action: string;
-      };
+      quick: string;
       complete: string;
       cancel: string;
     };
