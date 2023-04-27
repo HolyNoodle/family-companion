@@ -1,12 +1,13 @@
-import React from "react";
+import React, {useContext} from "react";
 import styled from "styled-components";
 
 import dayjs from "dayjs";
 import {EventItem} from "./Event";
 import FeedEvent from "./FeedEvent";
 import {Empty} from "antd";
+import {TranslatorContext} from "src/context";
+import { DateFormat } from "src/utils";
 
-require("dayjs/locale/fr");
 
 const FeedDayContainer = styled.div`
   padding: 1em;
@@ -18,11 +19,10 @@ const FeedDayContainer = styled.div`
 `;
 
 const FeedDay = ({date, events}: {date: Date; events: EventItem[]}) => {
+  const {formatDate} = useContext(TranslatorContext);
   return (
     <FeedDayContainer key={dayjs(date).format("DDMMYYYY")}>
-      <h1 id={`day_${dayjs(date).format("DDMMYYYY")}`}>
-        {dayjs(date).locale("fr").format("dddd DD MMMM")}
-      </h1>
+      <h1 id={`day_${dayjs(date).format("DDMMYYYY")}`}>{formatDate(date, DateFormat.LONG_DATE)}</h1>
       <div>
         {events.length === 0 && <Empty />}
         {events.map((event) => (

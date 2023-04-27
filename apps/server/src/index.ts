@@ -1,6 +1,7 @@
 import { JobScheduler } from "./domains/Job";
 import { State } from "./state";
 import { Job, Task } from "@famcomp/common";
+import { getTranslator } from "@famcomp/translations";
 
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import NotificationManager from "./domains/Notification";
@@ -18,7 +19,11 @@ if (!process.env.STORAGE_PATH) {
 const storagePath = process.env.STORAGE_PATH;
 State.setPath(storagePath);
 
+const locale = "en";
+
 const start = async () => {
+  const translator = getTranslator(locale as any);
+
   const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
 
   console.log("Starting home assistant connection");
@@ -36,7 +41,7 @@ const start = async () => {
   state.persons = await connection.getPersons();
 
   const taskScheduler = new JobScheduler(state);
-  const notification = new NotificationManager(connection, state);
+  const notification = new NotificationManager(connection, state, translator);
 
   connection.subscribeToEvent("trigger_task");
   connection.addListener("trigger_task", ({ id }: { id: string }) => {

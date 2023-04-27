@@ -21,6 +21,7 @@
     "uuid": "^9.0.0",
     "dayjs": "^1.11.7",
     "@famcomp/common": "*",
+    "@famcomp/translations": "*",
     "@famcomp/notification": "*",
     "@famcomp/home-assistant": "*"
   },

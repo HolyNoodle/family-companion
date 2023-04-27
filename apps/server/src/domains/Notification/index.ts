@@ -5,11 +5,13 @@ import { AppState } from "../../types";
 import { EventEmitter } from "stream";
 import { v4 } from "uuid";
 import dayjs from "dayjs";
+import { getTranslator } from "@famcomp/translations";
 
 export default class NotificationManager extends EventEmitter {
   constructor(
     private connection: HomeAssistantConnection,
-    private state: AppState
+    private state: AppState,
+    private translator: ReturnType<typeof getTranslator>
   ) {
     super();
 
@@ -104,11 +106,11 @@ export default class NotificationManager extends EventEmitter {
           .stick(true)
           .action({
             action: ["complete", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
-            title: "Terminer",
+            title: this.translator.translations.notifications.actions.complete,
           })
           .action({
             action: ["cancel", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
-            title: "Annuler",
+            title: this.translator.translations.notifications.actions.cancel,
           })
           .channelMode(ChannelMode.Default);
       }
@@ -133,7 +135,7 @@ export default class NotificationManager extends EventEmitter {
 
   createNotificationAction(person: Person) {
     const notification = new MobileNotificationBuilder()
-      .title("Créer une tâche")
+      .title(this.translator.translations.notifications.actions.todo.title)
       .message("")
       .tag("task.action.todo")
       .target(this.getPersonShortId(person))
@@ -141,7 +143,7 @@ export default class NotificationManager extends EventEmitter {
       .stick(true)
       .action({
         action: "REPLY",
-        title: "TODO",
+        title: this.translator.translations.notifications.actions.todo.action,
       })
       .channelMode(ChannelMode.Action);
 

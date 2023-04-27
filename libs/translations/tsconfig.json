@@ -1,0 +1,11 @@
+{
+  // We extend it from here!
+  "extends": "tsconfig/tsconfig.lib.json",
+
+  "compilerOptions": {
+    "outDir": "./dist/"
+  },
+
+  "include": ["src"],
+  "exclude": ["node_modules", "src/**/*.test.ts"]
+}
