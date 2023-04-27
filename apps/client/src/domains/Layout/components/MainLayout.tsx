@@ -5,6 +5,10 @@ import styled from "styled-components";
 
 const AppLayout = styled(Layout)`
   height: 100%;
+
+  a {
+    color: white;
+  }
 `;
 
 const MainLayout = () => (
