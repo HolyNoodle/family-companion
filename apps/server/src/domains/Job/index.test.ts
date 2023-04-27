@@ -1,13 +1,14 @@
 import { Task } from "@famcomp/common";
 import { JobScheduler, getExecutionDates } from ".";
 import { AppState } from "../../types";
+import dayjs from "dayjs";
 
 jest.mock("uuid", () => ({ v4: () => "123456789" }));
 
 const createTask = (id = "123"): Task =>
   ({
     id: `test${id}`,
-    cron: "*/10 * * * * *",
+    cron: "0/10 * * *",
     label: "test",
   } as Task);
 
@@ -153,7 +154,7 @@ describe("JobScheduler", () => {
       ...task,
       jobs: [
         {
-          date: new Date("2023-01-01T09:20:00.000Z"),
+          date: dayjs(new Date()),
           id: "123456789",
           participations: [],
         },

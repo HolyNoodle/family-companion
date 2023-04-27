@@ -1,6 +1,7 @@
 import { WebSocket } from "ws";
 import { HomeAssistantConnection, HomeAssistantMessage } from "./connection";
 
+process.env.SUPERVISOR_URL = "test.url:4321"
 jest.mock("ws");
 
 describe("HomeAssistantConnection", () => {
@@ -57,7 +58,7 @@ describe("HomeAssistantConnection", () => {
   });
 
 
-  it("Should close connection", async () => {
+  it("Should close connection when not initialized", async () => {
     const connection = new HomeAssistantConnection("123token");
 
     await expect(connection.stop()).resolves.toBeUndefined();
@@ -171,7 +172,6 @@ describe("HomeAssistantConnection", () => {
 
   it("Should send message with next id to home assistant when id is not present", async () => {
     const connection = new HomeAssistantConnection("123token");
-
 
     connection.start();
 
