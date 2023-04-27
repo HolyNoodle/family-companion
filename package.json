@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build:prod": "sh ./build.sh"
+    "build:prod": "sh ./build.sh",
+    "build": "turbo build"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
