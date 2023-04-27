@@ -18,7 +18,10 @@ export class JobScheduler extends EventEmitter {
   start() {
     this.taskIds = {};
 
-    this.schedulerTimer = setInterval(this.schedulerProcess.bind(this), 60 * 60 * 1000);
+    this.schedulerTimer = setInterval(
+      this.schedulerProcess.bind(this),
+      60 * 60 * 1000
+    );
     this.schedulerProcess();
   }
 
@@ -103,7 +106,9 @@ export class JobScheduler extends EventEmitter {
       participations: [],
     };
 
-    task.jobs.splice(0, 0, job);
+    if (task.jobs.unshift(job) > 500) {
+      task.jobs = task.jobs.slice(0, 500);
+    }
 
     this.emit("start_job", task, job);
 
