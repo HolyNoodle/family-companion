@@ -1,7 +1,8 @@
 import {createSlice, createAsyncThunk, createEntityAdapter, EntityState} from "@reduxjs/toolkit";
 import api from "src/api";
-import {RootState} from "src/store";
+import {RootState, useAppDispatch, useAppSelector} from "src/store";
 import {Person} from "@famcomp/common";
+import {useEffect} from "react";
 
 export interface PersonState extends EntityState<Person> {
   status: "idle" | "pending" | "succeeded" | "failed";
@@ -41,8 +42,27 @@ export const fetchPersons = createAsyncThunk("persons/fetch", () => {
 
 export default personsSlice;
 
-const tasksSelectors = personAdapter.getSelectors<RootState>((state) => state.persons);
+const personsSelectors = personAdapter.getSelectors<RootState>((state) => state.persons);
 
-export const selectAllPersons = tasksSelectors.selectAll;
-export const selectPerson = tasksSelectors.selectById;
+export const selectAllPersons = personsSelectors.selectAll;
+export const selectPerson = personsSelectors.selectById;
 export const selectPersonsStatus = (state: RootState) => state.persons.status || "idle";
+
+export const usePersons = () => {
+  const dispatch = useAppDispatch();
+
+  const persons = useAppSelector(selectAllPersons);
+  const personsStatus = useAppSelector(selectPersonsStatus);
+
+  useEffect(() => {
+    if (personsStatus === "idle") {
+      dispatch(fetchPersons());
+    }
+  }, [personsStatus]);
+
+  return persons;
+};
+export const usePerson = (id: string) => {
+  usePersons();
+  return useAppSelector((state) => selectPerson(state, id));
+};

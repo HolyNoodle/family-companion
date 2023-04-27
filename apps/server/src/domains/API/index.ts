@@ -91,7 +91,7 @@ export default (
           job.participations.forEach((participation) => {
             map[participation.person] = {
               ...(map[participation.person] || {}),
-              [task.id]: (map[participation.person][task.id] || 0) + 1,
+              [task.id]: (map[participation.person]?.[task.id] || 0) + 1,
             };
           });
         });

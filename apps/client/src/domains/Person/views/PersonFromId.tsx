@@ -1,20 +1,11 @@
-import React, {useEffect} from "react";
-import {fetchPersons, selectPerson, selectPersonsStatus} from "../state";
-import {useAppDispatch, useAppSelector} from "src/store";
+import React from "react";
+import {usePerson} from "../state";
 import Person from "../components/Person";
 
 const PersonFromId = ({person}: {person: string}) => {
-  const personObject = useAppSelector((state) => selectPerson(state, person));
-  const personStatus = useAppSelector(selectPersonsStatus);
-  const dispatch = useAppDispatch();
+  const personObject = usePerson(person);
 
-  useEffect(() => {
-    if (personStatus === "idle") {
-      dispatch(fetchPersons());
-    }
-  }, [personStatus]);
-
-  if(!personObject) {
+  if (!personObject) {
     return null;
   }
 

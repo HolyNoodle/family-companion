@@ -3,6 +3,7 @@ import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
 
 import tasksSlice from "./domains/Task/state";
 import personsSlice from "./domains/Person/state";
+import statsSlice from "./domains/Stats/state";
 
 const store = configureStore({
   middleware(getDefaultMiddleware) {
@@ -12,6 +13,7 @@ const store = configureStore({
   },
   reducer: {
     tasks: tasksSlice.reducer,
+    stats: statsSlice.reducer,
     persons: personsSlice.reducer
   }
 });
