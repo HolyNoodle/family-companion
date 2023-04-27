@@ -4,3 +4,7 @@ export interface AppState {
   tasks: Task[];
   persons: Person[]
 }
+
+export interface Options {
+  locale: string;
+}
