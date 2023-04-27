@@ -106,6 +106,9 @@ const start = async () => {
     "action",
     (action: string, task: Task, job: Job, person: string) => {
       switch (action) {
+        case "trigger":
+          taskScheduler.triggerTask(task);
+          break;
         case "complete":
           taskScheduler.completeJob(job, person);
 
