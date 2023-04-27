@@ -4,12 +4,13 @@ import { getFutureMatches } from "@datasert/cronjs-matcher";
 import { v4 } from "uuid";
 import { Job, Task } from "@famcomp/common";
 import dayjs from "dayjs";
+import { AppState } from "../../types";
 
 export class JobScheduler extends EventEmitter {
   private taskIds: { [id: string]: NodeJS.Timeout };
   private schedulerTimer: NodeJS.Timeout | undefined;
 
-  constructor(private tasks: Task[]) {
+  constructor(private state: AppState) {
     super();
 
     this.taskIds = {};
@@ -26,7 +27,7 @@ export class JobScheduler extends EventEmitter {
   }
 
   schedulerProcess() {
-    const idleTasks = this.tasks.filter((t) => !this.taskIds[t.id]);
+    const idleTasks = this.state.tasks.filter((t) => !this.taskIds[t.id]);
 
     idleTasks.forEach(this.startTask.bind(this));
   }

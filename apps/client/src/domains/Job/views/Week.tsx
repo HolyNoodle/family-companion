@@ -22,8 +22,6 @@ const Week = () => {
   const taskStatus = useSelector(selectTasksStatus);
   const dispatch = useAppDispatch();
 
-  console.log(taskStatus, tasks);
-
   useEffect(() => {
     if (taskStatus === "idle") {
       dispatch(fetchTasks());

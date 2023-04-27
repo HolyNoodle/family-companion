@@ -27,6 +27,16 @@ class API {
         }));
       });
   }
+  uploadBackup(data: Task[]) {
+    return fetch(this.buildURL("/upload"), {
+      method: "post",
+      body: JSON.stringify(data),
+
+      headers: {
+        "Content-type": "application/json"
+      }
+    });
+  }
   getPersons(): Promise<Person[]> {
     return fetch(this.buildURL("/persons")).then(
       (response) => response.json() as Promise<Person[]>

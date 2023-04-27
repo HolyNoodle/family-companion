@@ -35,7 +35,7 @@ const start = async () => {
   console.log("Retrieving persons");
   state.persons = await connection.getPersons();
 
-  const taskScheduler = new JobScheduler(state.tasks);
+  const taskScheduler = new JobScheduler(state);
   const notification = new NotificationManager(connection, state);
 
   connection.subscribeToEvent("trigger_task");

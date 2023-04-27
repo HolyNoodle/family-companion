@@ -85,7 +85,19 @@ export default (
       res.send(true).end();
     });
 
-    app.get("/stats", async (req, res) => {
+    app.post("/upload", async (req, res) => {
+      const tasks = req.body;
+
+      state.tasks = tasks;
+
+      State.set(state);
+
+      notification.syncNotifications();
+
+      res.writeHead(200).end();
+    });
+
+    app.get("/stats", async (_, res) => {
       const personMap = state.tasks.reduce((map, task) => {
         task.jobs?.forEach((job) => {
           job.participations.forEach((participation) => {

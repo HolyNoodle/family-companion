@@ -9,7 +9,14 @@ import {Button, List, Popconfirm, Space} from "antd";
 import TaskForm from "src/domains/Task/components/Form";
 import {Task} from "@famcomp/common";
 import api from "src/api";
-import {DeleteFilled, EditOutlined, PlusOutlined} from "@ant-design/icons";
+import {
+  DeleteFilled,
+  DownloadOutlined,
+  EditOutlined,
+  PlusOutlined,
+  UploadOutlined
+} from "@ant-design/icons";
+import dayjs from "dayjs";
 
 const FeedContainer = styled.div`
   display: flex;
@@ -77,6 +84,47 @@ const TaskList = () => {
           }}
         >
           Add task
+        </Button>
+        <Button
+          icon={<DownloadOutlined />}
+          onClick={async () => {
+            const tasks = await api.getTasks();
+
+            const aElement = document.createElement("a");
+            aElement.setAttribute(
+              "download",
+              `backup-${dayjs(new Date()).format("YYYYMMDD_HHmmss")}.json`
+            );
+            const href = URL.createObjectURL(new Blob([JSON.stringify(tasks)]));
+            aElement.href = href;
+            aElement.setAttribute("target", "_blank");
+            aElement.click();
+            URL.revokeObjectURL(href);
+          }}
+        >
+          Backup
+        </Button>
+        <Button
+          icon={<UploadOutlined />}
+          onClick={async () => {
+            const input: HTMLInputElement = document.createElement("input");
+            input.type = "file";
+
+            input.onchange = (e) => {
+              const stream = new FileReader();
+              stream.onload = async function () {
+                const tasks = JSON.parse(this.result as string);
+
+                await api.uploadBackup(tasks);
+                
+                dispatch(fetchTasks());
+              };
+              stream.readAsText((e.target as any).files[0]);
+            };
+            input.click();
+          }}
+        >
+          Upload
         </Button>
       </Space>
       <List

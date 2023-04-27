@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
 import * as fs from "fs/promises";
-import { AppState} from "./types";
+import { AppState } from "./types";
 import { Task } from "@famcomp/common";
 
 const path = require("path");
@@ -39,15 +39,24 @@ export class State {
   public static async get() {
     if (!State.state) {
       if (existsSync(State.path)) {
-        const rawState = JSON.parse(
-          (await fs.readFile(State.path)).toString("utf-8")
-        );
+        try {
+          const rawState = JSON.parse(
+            (await fs.readFile(State.path)).toString("utf-8")
+          );
 
-        State.state = rawState;
+          State.state = rawState;
+          State.state.tasks = State.state.tasks || [];
+          State.state.persons = State.state.persons || [];
+        } catch {
+          State.state = {
+            tasks: [],
+            persons: [],
+          };
+        }
       } else {
         State.state = {
           tasks: [],
-          persons: []
+          persons: [],
         };
       }
     }
