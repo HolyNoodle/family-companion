@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import {Task} from "@famcomp/common";
+import {Person, Task} from "@famcomp/common";
 
 export interface JobSchedule extends Task {
   schedule: dayjs.Dayjs[];
@@ -26,6 +26,11 @@ class API {
           startDate: dayjs(task.startDate)
         }));
       });
+  }
+  getPersons(): Promise<Person[]> {
+    return fetch(this.buildURL("/persons")).then((response) => {
+      return response.json() as Promise<Person[]>;
+    });
   }
   pushTask(task: Task) {
     return fetch(this.buildURL("/tasks"), {

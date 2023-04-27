@@ -72,7 +72,7 @@ const Feed = () => {
           .filter((e) => e.date.isSame(date, "day"))
           .sort((a, b) => b.date.utcOffset() - a.date.utcOffset());
 
-        return <FeedDay events={dayEvents} date={date} />;
+        return <FeedDay key={date.toISOString()} events={dayEvents} date={date} />;
       })}
     </FeedContainer>
   );

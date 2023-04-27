@@ -28,6 +28,9 @@ export default (
     app.get("/tasks", (_, res) => {
       res.send(state.tasks).end();
     });
+    app.get("/persons", (_, res) => {
+      res.send(state.persons).end();
+    });
 
     app.post("/tasks", (req, res) => {
       const task: Task = req.body;

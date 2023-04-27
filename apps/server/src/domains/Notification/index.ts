@@ -61,7 +61,7 @@ export default class NotificationManager extends EventEmitter {
     }
 
     const [action, taskId, jobId, person] = data.action.split(".");
-    console.log("received action", action, taskId, jobId, person, data);
+    console.log("received action", action, taskId, jobId, person);
 
     const task = this.state.tasks.find((t) => t.id === taskId);
 
@@ -84,7 +84,11 @@ export default class NotificationManager extends EventEmitter {
       return;
     }
 
-    this.emit("action", action, task, job, person);
+    this.emit("action", action, task, job, "person." + person);
+  }
+
+  private getPersonShortId(person: Person) {
+    return person.id.split('.')[1];
   }
 
   syncPersonTask(person: Person, task: Task): Promise<void> {
@@ -99,11 +103,11 @@ export default class NotificationManager extends EventEmitter {
           .persist(true)
           .stick(true)
           .action({
-            action: ["complete", task.id, task.jobs[0].id, person.id].join("."),
+            action: ["complete", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
             title: "Terminer",
           })
           .action({
-            action: ["cancel", task.id, task.jobs[0].id, person.id].join("."),
+            action: ["cancel", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
             title: "Annuler",
           })
           .important();
@@ -132,7 +136,7 @@ export default class NotificationManager extends EventEmitter {
       .title("Créer une tâche")
       .message("")
       .tag("task.action.todo")
-      .target(person.id.split('.')[1])
+      .target(this.getPersonShortId(person))
       .persist(true)
       .stick(true)
       .action({

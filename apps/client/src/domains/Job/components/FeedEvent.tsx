@@ -12,6 +12,7 @@ import {
   ExclamationCircleOutlined,
   MinusOutlined
 } from "@ant-design/icons";
+import PersonFromId from "src/domains/Person/views/PersonFromId";
 
 const Hour = styled.span`
   color: grey;
@@ -86,7 +87,11 @@ const FeedEvent = ({event}: {event: EventItem}) => {
         return (
           <Space>
             <span>{event.job?.completionDate?.format("HH:mm")}</span>
-            <span>{event.job?.participations?.map((participation) => participation.person)}</span>
+            <span>
+              {event.job?.participations?.map((participation) => (
+                <PersonFromId key={participation.person} person={participation.person} />
+              ))}
+            </span>
           </Space>
         );
       case "coming":
