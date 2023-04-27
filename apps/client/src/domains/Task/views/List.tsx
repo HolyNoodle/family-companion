@@ -1,11 +1,11 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {useSelector} from "react-redux";
 import styled from "styled-components";
 
 import {useAppDispatch} from "src/store";
 
 import {fetchTasks, selectAllTasks, selectTasksStatus} from "src/domains/Task/state";
-import {Button, List, Popconfirm, Space} from "antd";
+import {Button, List, Space} from "antd";
 import TaskForm from "src/domains/Task/components/Form";
 import {Task} from "@famcomp/common";
 import api from "src/api";
@@ -17,6 +17,7 @@ import {
   UploadOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import {TranslatorContext} from "src/context";
 
 const FeedContainer = styled.div`
   display: flex;
@@ -28,6 +29,7 @@ const FeedContainer = styled.div`
 `;
 
 const TaskList = () => {
+  const {translator} = useContext(TranslatorContext);
   const feedContainerRef = useRef<HTMLDivElement>();
   const tasks = useSelector(selectAllTasks);
   const taskStatus = useSelector(selectTasksStatus);
@@ -83,7 +85,7 @@ const TaskList = () => {
             setCreate(true);
           }}
         >
-          Add task
+          {translator.translations.task.actions.create}
         </Button>
         <Button
           icon={<DownloadOutlined />}
@@ -102,7 +104,7 @@ const TaskList = () => {
             URL.revokeObjectURL(href);
           }}
         >
-          Backup
+          {translator.translations.task.actions.download}
         </Button>
         <Button
           icon={<UploadOutlined />}
@@ -116,7 +118,7 @@ const TaskList = () => {
                 const tasks = JSON.parse(this.result as string);
 
                 await api.uploadBackup(tasks);
-                
+
                 dispatch(fetchTasks());
               };
               stream.readAsText((e.target as any).files[0]);
@@ -124,7 +126,7 @@ const TaskList = () => {
             input.click();
           }}
         >
-          Upload
+          {translator.translations.task.actions.upload}
         </Button>
       </Space>
       <List
@@ -143,7 +145,7 @@ const TaskList = () => {
                 danger
                 icon={<DeleteFilled />}
                 onClick={async () => {
-                  if (confirm("Are you sure you want to delete this task?")) {
+                  if (confirm(translator.translations.task.actions.confirmDelete)) {
                     await api.deleteTask(item.id);
                     dispatch(fetchTasks());
                   }

@@ -1,9 +1,10 @@
-import React, {useEffect, useMemo, useState} from "react";
-import {Form, Input, DatePicker, Modal} from "antd";
+import React, {useContext, useEffect, useState} from "react";
+import {Form, Input, Modal} from "antd";
 import {Task} from "@famcomp/common";
 import dayjs from "dayjs";
 import {parse} from "@datasert/cronjs-parser";
 import {getFutureMatches} from "@datasert/cronjs-matcher";
+import {TranslatorContext} from "src/context";
 
 export interface TaskFormProps {
   submitting: boolean;
@@ -24,6 +25,7 @@ const generateCronString = (date: Date): string => {
 };
 
 const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormProps) => {
+  const {translator} = useContext(TranslatorContext);
   const [form] = Form.useForm();
   const [nextIterations, setNextIterations] = useState<Date[]>([]);
 
@@ -86,34 +88,30 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
         onOk={form.submit}
       >
         <Form.Item
-          label="Label"
+          label={translator.translations.task.properties.label}
           name="label"
           rules={[{required: true, message: "Please input a label for the task"}]}
         >
           <Input onChange={!task?.id ? (e) => handleLabelChange(e.target.value) : undefined} />
         </Form.Item>
         <Form.Item
-          label="Id"
+          label={translator.translations.task.properties.id}
           name="id"
           rules={[{required: true, message: "Please input an id for the task"}]}
         >
           <Input disabled={!!task?.id} />
         </Form.Item>
 
-        <Form.Item label="Date" name="startDate">
-          <DatePicker showTime={{format: "HH:mm"}} />
-        </Form.Item>
-
-        <Form.Item label="Description" name="description">
+        <Form.Item label={translator.translations.task.properties.description} name="description">
           <Input.TextArea />
         </Form.Item>
 
         <Form.Item
-          label="Cron string"
+          label={translator.translations.task.properties.cron}
           name="cron"
           help={
             <div>
-              Next iterations:{" "}
+              {translator.translations.task.properties.cronIterations}:{" "}
               <ul>
                 {nextIterations.map((d) => (
                   <li>{d.toLocaleString()}</li>
