@@ -6,8 +6,6 @@ import { getTranslator } from "@famcomp/translations";
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import NotificationManager from "./domains/Notification";
 import API from "./domains/API";
-import { v4 } from "uuid";
-import dayjs from "dayjs";
 import { existsSync, readFileSync } from "fs";
 import { Options } from "./types";
 
@@ -87,19 +85,6 @@ const start = async () => {
     });
 
     State.set(state);
-  });
-
-  notification.on("new_task", (task: Task) => {
-    task.jobs.push({
-      date: dayjs(),
-      id: v4(),
-      participations: [],
-    });
-    state.tasks.push(task);
-
-    State.set(state);
-
-    notification.syncTask(task);
   });
 
   notification.on(

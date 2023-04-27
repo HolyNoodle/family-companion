@@ -2,7 +2,7 @@ import EventEmitter from "events";
 
 import { getFutureMatches } from "@datasert/cronjs-matcher";
 import { v4 } from "uuid";
-import { Job, Task } from "@famcomp/common";
+import { Job, Task, isTaskActive } from "@famcomp/common";
 import dayjs from "dayjs";
 import { AppState } from "../../types";
 
@@ -99,6 +99,12 @@ export class JobScheduler extends EventEmitter {
     console.log("Job triggered for", `"${task.label}"`, `(${task.id})`);
     if (!task.jobs) {
       task.jobs = [];
+    }
+
+    if(isTaskActive(task)) {
+      console.log("Task", task.label, "already active");
+      
+      return undefined;
     }
 
     const job: Job = {
