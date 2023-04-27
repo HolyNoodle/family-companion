@@ -1,13 +1,14 @@
-import { Job, Person, Task, isTaskActive } from "@famcomp/common";
+import { Person, Task, isTaskActive } from "@famcomp/common";
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
-import { HomeAssistantNotificationProvider } from "@famcomp/notification";
+import { MobileNotificationBuilder } from "@famcomp/notification";
 import { AppState } from "../../types";
 import { EventEmitter } from "stream";
+import { v4 } from "uuid";
+import dayjs from "dayjs";
 
 export default class NotificationManager extends EventEmitter {
   constructor(
-    private provider: HomeAssistantNotificationProvider,
-    connection: HomeAssistantConnection,
+    private connection: HomeAssistantConnection,
     private state: AppState
   ) {
     super();
@@ -41,10 +42,26 @@ export default class NotificationManager extends EventEmitter {
     this.syncPerson(personObject);
   }
 
-  private handleNotificationAction(data: { action: string }) {
-    const [action, taskId, jobId, person] = data.action.split("#");
+  private handleNotificationAction(data: {
+    action: string;
+    tag: string;
+    reply_text: string;
+  }) {
+    if (data.action === "REPLY") {
+      if (data.tag === "task.action.todo") {
+        this.emit("new_task", {
+          id: v4(),
+          jobs: [],
+          label: data.reply_text,
+          startDate: dayjs(),
+          active: true,
+        } as Task);
+      }
+      return;
+    }
 
-    console.log("received action", action, taskId, jobId, person);
+    const [action, taskId, jobId, person] = data.action.split(".");
+    console.log("received action", action, taskId, jobId, person, data);
 
     const task = this.state.tasks.find((t) => t.id === taskId);
 
@@ -58,11 +75,12 @@ export default class NotificationManager extends EventEmitter {
     if (!job) {
       console.log("Couldn't find job for this action", action);
       console.log("Clearing notification for this job for this person");
-      this.provider.clearNotification(
-        { id: person } as Person,
-        { id: taskId } as Task,
-        { id: jobId } as Job
-      );
+      const notification = new MobileNotificationBuilder()
+        .clear()
+        .target(person.split(".")[1])
+        .tag(task.id);
+
+      this.connection.send(notification.build());
       return;
     }
 
@@ -70,19 +88,29 @@ export default class NotificationManager extends EventEmitter {
   }
 
   syncPersonTask(person: Person, task: Task): Promise<void> {
-    if (isTaskActive(task)) {
-      const method = person.isHome
-        ? this.provider.sendNotification.bind(this.provider)
-        : this.provider.clearNotification.bind(this.provider);
+    const notification = new MobileNotificationBuilder();
+    notification.target(person.id.split(".")[1]).tag(task.id).clear();
 
-      return method(person, task, task.jobs[0]);
-    } else {
-      if (task.jobs?.[0]) {
-        return this.provider.clearNotification(person, task, task.jobs[0]);
+    if (isTaskActive(task)) {
+      if (person.isHome) {
+        notification
+          .title(task.label)
+          .message(task.description || "")
+          .persist(true)
+          .stick(true)
+          .action({
+            action: ["complete", task.id, task.jobs[0].id, person.id].join("."),
+            title: "Terminer",
+          })
+          .action({
+            action: ["cancel", task.id, task.jobs[0].id, person.id].join("."),
+            title: "Annuler",
+          })
+          .important();
       }
     }
 
-    return Promise.resolve();
+    return this.connection.send(notification.build());
   }
 
   async syncTask(task: Task) {
@@ -95,13 +123,31 @@ export default class NotificationManager extends EventEmitter {
     await Promise.all(
       this.state.tasks.map((task) => this.syncPersonTask(person, task))
     );
+
+    await this.createNotificationAction(person);
+  }
+
+  createNotificationAction(person: Person) {
+    const notification = new MobileNotificationBuilder()
+      .title("Créer une tâche")
+      .message("")
+      .tag("task.action.todo")
+      .target(person.id.split('.')[1])
+      .persist(true)
+      .stick(true)
+      .action({
+        action: "REPLY",
+        title: "TODO",
+      })
+      .notImportant();
+
+    this.connection.send(notification.build());
   }
 
   syncNotifications() {
     console.log("Syncing all tasks notifications");
     return Promise.all(
       this.state.persons
-        // .filter((p) => p.id === "person.kevin")
         .map((person) => this.syncPerson(person))
     );
   }

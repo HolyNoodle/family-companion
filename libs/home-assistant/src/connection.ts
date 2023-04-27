@@ -37,6 +37,7 @@ export type HomeAssistantResponse =
   | {
       type: "event";
       event: {
+        context: any;
         event_type: string;
         data: {
           entity_id: string;
@@ -47,12 +48,6 @@ export type HomeAssistantResponse =
             state: any;
           };
         };
-      };
-    }
-  | {
-      type: "mobile_app_notification_action";
-      event: {
-        action: string;
       };
     };
 
@@ -138,7 +133,11 @@ export class HomeAssistantConnection extends EventEmitter {
         }
 
         if (event.type === "event") {
-          this.emit(event.event.event_type, event.event.data);
+          this.emit(
+            event.event.event_type,
+            event.event.data,
+            event.event.context.user_id
+          );
         }
       };
     };
@@ -218,6 +217,7 @@ export class HomeAssistantConnection extends EventEmitter {
       (entity) =>
         ({
           id: entity.entity_id,
+          internalId: entity.attributes.user_id,
           name: entity.attributes.friendly_name,
           isHome: (entity.state as string).toLocaleLowerCase() === "home",
         } as Person)

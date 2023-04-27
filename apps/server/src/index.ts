@@ -3,9 +3,10 @@ import { State } from "./state";
 import { Job, Task } from "@famcomp/common";
 
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
-import { HomeAssistantNotificationProvider } from "@famcomp/notification";
 import NotificationManager from "./domains/Notification";
 import API from "./domains/API";
+import { v4 } from "uuid";
+import dayjs from "dayjs";
 
 if (!process.env.STORAGE_PATH) {
   console.error(
@@ -35,14 +36,7 @@ const start = async () => {
   state.persons = await connection.getPersons();
 
   const taskScheduler = new JobScheduler(state.tasks);
-  const notificationProvider = new HomeAssistantNotificationProvider(
-    connection
-  );
-  const notification = new NotificationManager(
-    notificationProvider,
-    connection,
-    state
-  );
+  const notification = new NotificationManager(connection, state);
 
   connection.subscribeToEvent("trigger_task");
   connection.addListener("trigger_task", ({ id }: { id: string }) => {
@@ -69,6 +63,19 @@ const start = async () => {
     State.set(state);
   });
 
+  notification.on("new_task", (task: Task) => {
+    task.jobs.push({
+      date: dayjs(),
+      id: v4(),
+      participations: [],
+    });
+    state.tasks.push(task);
+
+    State.set(state);
+
+    notification.syncTask(task);
+  });
+
   notification.on(
     "action",
     (action: string, task: Task, job: Job, person: string) => {
@@ -79,7 +86,7 @@ const start = async () => {
           connection.fireEvent("task_completed", {
             task,
             job,
-            person
+            person,
           });
           break;
         case "cancel":
@@ -88,7 +95,7 @@ const start = async () => {
           connection.fireEvent("task_canceled", {
             task,
             job,
-            person
+            person,
           });
           break;
       }

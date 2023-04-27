@@ -1,8 +1,4 @@
-import { Job, Person, Task } from "@famcomp/common";
-import {
-  HomeAssistantConnection,
-  HomeAssistantMessage,
-} from "@famcomp/home-assistant";
+import { HomeAssistantMessage } from "@famcomp/home-assistant";
 
 export type NotificationAction =
   | {
@@ -10,82 +6,97 @@ export type NotificationAction =
       title: string;
       uri: string;
     }
+  | {
+      action: "REPLY";
+      title: string;
+    }
   | { action: string; title: string };
 
-export type NotificationInfo =
-  | {
-      message: string;
-      title: string;
-      data?: {
-        persistent?: boolean;
-        sticky?: boolean;
-        tag?: string;
-        actions?: NotificationAction[];
-      };
-    }
-  | {
-      message: "clear_notification";
-    };
+export interface NotificationData {
+  persistent?: boolean;
+  sticky?: boolean;
+  tag?: string;
+  channel?: string;
+  actions?: NotificationAction[];
+}
 
-const createNotificationMessage = (
-  taskId: string,
-  jobId: string,
-  target: Person,
-  notification: NotificationInfo,
-  withAction: boolean = true
-): HomeAssistantMessage<NotificationInfo> => {
-  return {
-    type: "call_service",
-    domain: "notify",
-    service: "mobile_app_" + target.id.split(".")[1],
-    service_data: {
-      ...notification,
-      data: {
-        persistent: true,
-        sticky: true as any,
-        tag: taskId,
-        actions: withAction
-          ? [
-              {
-                action: ["complete", taskId, jobId, target.id].join("#"),
-                title: "Terminer",
-              },
-              {
-                action: ["cancel", taskId, jobId, target.id].join("#"),
-                title: "Annuler",
-              },
-            ]
-          : undefined,
-      },
-    },
-  };
-};
+export interface NotificationInfo {
+  message: string;
+  title?: string;
+  data?: NotificationData;
+}
 
-export class HomeAssistantNotificationProvider {
-  constructor(private haConnection: HomeAssistantConnection) {}
+export class MobileNotificationBuilder {
+  private data: NotificationInfo;
+  private mobileId?: string;
+  private tagId?: string;
+  private actions: NotificationAction[];
+  private persistent?: boolean;
+  private sticky?: boolean;
+  private channel: string = "SensorWorker";
 
-  async sendNotification(person: Person, task: Task, job: Job): Promise<any> {
-    const notification = createNotificationMessage(task.id, job.id, person, {
-      title: task.label,
-      message: task.description || "",
-    });
-
-    console.log("Send notification for", person.id, "- task", task.id);
-    return this.haConnection.send(notification);
+  constructor() {
+    this.data = {} as any;
+    this.actions = [];
   }
 
-  async clearNotification(person: Person, task: Task, job: Job): Promise<any> {
-    const notification = createNotificationMessage(
-      task.id,
-      job.id,
-      person,
-      {
-        message: "clear_notification",
-      },
-      false
-    );
+  clear() {
+    this.data.message = "clear_notification";
+    return this;
+  }
 
-    console.log("Clear notification for", person.id, "- task:", task.id);
-    return this.haConnection.send(notification);
+  title(title: string) {
+    this.data.title = title;
+    return this;
+  }
+  message(message: string) {
+    this.data.message = message;
+    return this;
+  }
+  target(target: string) {
+    this.mobileId = target;
+    return this;
+  }
+  tag(tag: string) {
+    this.tagId = tag;
+    return this;
+  }
+  persist(persistent: boolean) {
+    this.persistent = persistent;
+    return this;
+  }
+  stick(sticky: boolean) {
+    this.sticky = sticky;
+    return this;
+  }
+  action(action: NotificationAction) {
+    this.actions.push(action);
+    return this;
+  }
+  important() {
+    this.channel = "General";
+    return this;
+  }
+  notImportant() {
+    this.channel = "SensorWorker";
+    return this;
+  }
+
+  build(): HomeAssistantMessage<NotificationInfo> {
+    return {
+      type: "call_service",
+      domain: "notify",
+      service: "mobile_app_" + this.mobileId,
+      service_data: {
+        ...this.data,
+        data: {
+          channel: this.channel,
+          persistent: this.persistent,
+          sticky: this.sticky,
+          tag: this.tagId,
+          actions: this.actions.length ? this.actions : undefined,
+        },
+      },
+    };
   }
 }

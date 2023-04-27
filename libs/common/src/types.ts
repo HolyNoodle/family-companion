@@ -26,5 +26,6 @@ export interface WithId<U = string> {
 
 export interface Person extends WithId {
   name: string;
+  internalId: string;
   isHome: boolean;
 }
