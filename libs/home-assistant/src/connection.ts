@@ -93,7 +93,13 @@ export class HomeAssistantConnection extends EventEmitter {
 
     console.log("Contacting Home Assistant instance", url);
 
+    try {
     this.ws = new WebSocket(url);
+    }
+    catch(ex) {
+      console.error(ex);
+      return Promise.reject(ex);
+    }
 
     let authPromiseResolver: Function;
     let authPromiseRejecter: Function;

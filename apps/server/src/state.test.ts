@@ -18,10 +18,13 @@ describe("AppState", () => {
   beforeEach(() => {
     State.setPath("test/path");
     State.set(undefined as any);
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2023, 0, 1, 2, 4, 2, 345));
     jest.resetAllMocks();
   });
 
   afterEach(() => {
+    jest.clearAllTimers();
     jest.resetAllMocks();
   });
 
@@ -34,6 +37,7 @@ describe("AppState", () => {
 
     // Assert
     expect(state).toStrictEqual({
+      persons: [],
       tasks: [],
     });
     expect(exists).toHaveBeenCalledTimes(1);
@@ -68,8 +72,12 @@ describe("AppState", () => {
     expect(readFile).toHaveBeenCalledWith("test/path");
 
     expect(state).toStrictEqual({
+      persons: [],
       tasks: [
         {
+          active: true,
+          jobs: [],
+          startDate: "2023-01-01T01:04:02.345Z",
           cron: "",
           id: "fd",
           label: "",
@@ -111,8 +119,12 @@ describe("AppState", () => {
     expect(mkdir).toHaveBeenCalledTimes(1);
     expect(mkdir).toHaveBeenCalledWith("test", { recursive: true });
     expect(await State.get()).toStrictEqual({
+      persons: [],
       tasks: [
         {
+          active: true,
+          jobs: [],
+          startDate: dayjs("2023-01-01T01:04:02.345Z"),
           cron: "",
           id: "fd",
           label: "",
@@ -153,8 +165,12 @@ describe("AppState", () => {
     expect(access).toHaveBeenCalledWith("test");
     expect(mkdir).toHaveBeenCalledTimes(0);
     expect(await State.get()).toStrictEqual({
+      persons: [],
       tasks: [
         {
+          active: true,
+          jobs: [],
+          startDate: dayjs("2023-01-01T01:04:02.345Z"),
           cron: "",
           id: "fd",
           label: "",
