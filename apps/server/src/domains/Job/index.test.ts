@@ -1,5 +1,6 @@
 import { Task } from "@famcomp/common";
 import { JobScheduler, getExecutionDates } from ".";
+import { AppState } from "../../types";
 
 jest.mock("uuid", () => ({ v4: () => "123456789" }));
 
@@ -91,18 +92,22 @@ describe("JobScheduler", () => {
   });
 
   it("Should instanciate JobScheduler", () => {
-    const scheduler = new JobScheduler([]);
+    const scheduler = new JobScheduler({ tasks: [], persons: [] });
 
     expect(scheduler).toBeInstanceOf(JobScheduler);
   });
 
   it("Should start job scheduler", () => {
-    const scheduler = new JobScheduler([createTask(), createTask("234")]);
+    const scheduler = new JobScheduler({
+      tasks: [createTask(), createTask("234")],
+    } as AppState);
 
     scheduler.start();
 
     expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
-    expect(setTimeoutSpy.mock.calls[0][1]).toBe(7 * 60 * 1000 + 34 * 1000 + 544); 
+    expect(setTimeoutSpy.mock.calls[0][1]).toBe(
+      7 * 60 * 1000 + 34 * 1000 + 544
+    );
     // see fake time in before each to calculate this value (7 minutes and 35 seconds in milliseconds)
 
     expect(scheduler["taskIds"]).toStrictEqual({
@@ -114,7 +119,9 @@ describe("JobScheduler", () => {
   });
 
   it("Should stop scheduled jobs", () => {
-    const scheduler = new JobScheduler([createTask(), createTask("234")]);
+    const scheduler = new JobScheduler({
+      tasks: [createTask(), createTask("234")],
+    } as AppState);
 
     scheduler["taskIds"] = {
       test123: "timer",
@@ -131,7 +138,7 @@ describe("JobScheduler", () => {
 
   it("Should trigger task", () => {
     const task = createTask();
-    const scheduler = new JobScheduler([{ ...task }]);
+    const scheduler = new JobScheduler({ tasks: [{ ...task }] } as AppState);
 
     scheduler.start();
 
@@ -142,7 +149,7 @@ describe("JobScheduler", () => {
 
     taskExecution();
 
-    expect(scheduler["tasks"][0]).toStrictEqual({
+    expect(scheduler["state"]["tasks"][0]).toStrictEqual({
       ...task,
       jobs: [
         {
@@ -154,8 +161,8 @@ describe("JobScheduler", () => {
     });
     expect(eventSpy).toHaveBeenCalledTimes(1);
     expect(eventSpy).toHaveBeenCalledWith(
-      scheduler["tasks"][0],
-      scheduler["tasks"][0]["jobs"]![0]
+      scheduler["state"]["tasks"][0],
+      scheduler["state"]["tasks"][0]["jobs"]![0]
     );
   });
 });

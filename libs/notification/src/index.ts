@@ -17,6 +17,7 @@ export interface NotificationData {
   sticky?: boolean;
   tag?: string;
   channel?: string;
+  mode?: "default" | "low" | "high" | "min" | "max";
   actions?: NotificationAction[];
 }
 
@@ -26,6 +27,18 @@ export interface NotificationInfo {
   data?: NotificationData;
 }
 
+export enum ChannelMode {
+  Critical = "FC_Critical",
+  Default = "General",
+  Action = "FC_Action",
+}
+
+const channelCriticity: { [key in ChannelMode]: NotificationData["mode"] } = {
+  [ChannelMode.Critical]: "max",
+  [ChannelMode.Default]: "high",
+  [ChannelMode.Action]: "min",
+};
+
 export class MobileNotificationBuilder {
   private data: NotificationInfo;
   private mobileId?: string;
@@ -33,7 +46,7 @@ export class MobileNotificationBuilder {
   private actions: NotificationAction[];
   private persistent?: boolean;
   private sticky?: boolean;
-  private channel: string = "SensorWorker";
+  private channel: ChannelMode = ChannelMode.Default;
 
   constructor() {
     this.data = {} as any;
@@ -73,12 +86,8 @@ export class MobileNotificationBuilder {
     this.actions.push(action);
     return this;
   }
-  important() {
-    this.channel = "General";
-    return this;
-  }
-  notImportant() {
-    this.channel = "SensorWorker";
+  channelMode(mode: ChannelMode) {
+    this.channel = mode;
     return this;
   }
 
@@ -91,6 +100,7 @@ export class MobileNotificationBuilder {
         ...this.data,
         data: {
           channel: this.channel,
+          mode: channelCriticity[this.channel],
           persistent: this.persistent,
           sticky: this.sticky,
           tag: this.tagId,

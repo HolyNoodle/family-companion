@@ -1,6 +1,6 @@
 import { Person, Task, isTaskActive } from "@famcomp/common";
 import { HomeAssistantConnection } from "@famcomp/home-assistant";
-import { MobileNotificationBuilder } from "@famcomp/notification";
+import { ChannelMode, MobileNotificationBuilder } from "@famcomp/notification";
 import { AppState } from "../../types";
 import { EventEmitter } from "stream";
 import { v4 } from "uuid";
@@ -110,7 +110,7 @@ export default class NotificationManager extends EventEmitter {
             action: ["cancel", task.id, task.jobs[0].id, this.getPersonShortId(person)].join("."),
             title: "Annuler",
           })
-          .important();
+          .channelMode(ChannelMode.Default);
       }
     }
 
@@ -143,7 +143,7 @@ export default class NotificationManager extends EventEmitter {
         action: "REPLY",
         title: "TODO",
       })
-      .notImportant();
+      .channelMode(ChannelMode.Action);
 
     this.connection.send(notification.build());
   }
