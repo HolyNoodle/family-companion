@@ -8,6 +8,8 @@ import NotificationManager from "./domains/Notification";
 import API from "./domains/API";
 import { v4 } from "uuid";
 import dayjs from "dayjs";
+import { existsSync, readFileSync } from "fs";
+import { Options } from "./types";
 
 if (!process.env.STORAGE_PATH) {
   console.error(
@@ -19,13 +21,32 @@ if (!process.env.STORAGE_PATH) {
 const storagePath = process.env.STORAGE_PATH;
 State.setPath(storagePath);
 
-const locale = "en";
-
 const start = async () => {
+  console.log("Checking configuration");
+  const configCheck = (): Options => {
+    try {
+      if (existsSync("/data/options.json")) {
+        console.log("Loading config");
+        return JSON.parse(readFileSync("/data/options.json").toString());
+      } else {
+        console.log("No configuration present");
+      }
+    } catch (ex) {
+      console.error("Error while checking config file", ex);
+    }
+
+    console.log("Returning default config");
+    return {
+      locale: "en",
+    };
+  };
+  const config: Options = configCheck();
+  const locale = config.locale;
+  console.log("Language:", locale);
+
   const translator = getTranslator(locale as any);
 
   const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
-
   console.log("Starting home assistant connection");
   try {
     await connection.start();

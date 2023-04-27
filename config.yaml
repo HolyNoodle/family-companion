@@ -12,3 +12,7 @@ arch:
   - armhf
   - armv7
   - i386
+options:
+  locale: en
+schema:
+  locale: str
