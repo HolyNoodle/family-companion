@@ -6,6 +6,10 @@ export default {
   time: "LT",
   notifications: {
     actions: {
+      quick: {
+        action: "Trigger",
+        title: "Quick action"
+      },
       todo: {
         title: "Create a todo task",
         action: "Create",
@@ -27,6 +31,7 @@ export default {
       description: "Description",
       id: "Unique id",
       label: "Title",
+      quickAction: "Quick action",
     },
     actions: {
       create: "Create a task",

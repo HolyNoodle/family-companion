@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
-import {Form, Input, Modal} from "antd";
+import {Checkbox, Form, Input, Modal} from "antd";
 import {Task} from "@famcomp/common";
 import dayjs from "dayjs";
 import {parse} from "@datasert/cronjs-parser";
@@ -141,6 +141,14 @@ const TaskForm = ({onSubmit, onClose, submitting, task, open = false}: TaskFormP
           ]}
         >
           <Input onChange={(e) => handleCronChange(e.target.value)} />
+        </Form.Item>
+
+        <Form.Item
+          label={translator.translations.task.properties.quickAction}
+          valuePropName="checked"
+          name="quickAction"
+        >
+          <Checkbox />
         </Form.Item>
       </Modal>
     </Form>
