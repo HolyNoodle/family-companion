@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import { AppState } from "../../types";
 import NotificationManager from "../Notification";
 import { JobScheduler } from "../Job";
-import { Task } from "@famcomp/common";
+import { Stats, Task } from "@famcomp/common";
 
 const PORT: number = 7000;
 export default (
@@ -86,11 +86,6 @@ export default (
     });
 
     app.get("/stats", async (req, res) => {
-      type Stats = {
-        [person: string]: {
-          [task: string]: number;
-        };
-      };
       const personMap = state.tasks.reduce((map, task) => {
         task.jobs?.forEach((job) => {
           job.participations.forEach((participation) => {

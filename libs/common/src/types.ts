@@ -29,3 +29,9 @@ export interface Person extends WithId {
   internalId: string;
   isHome: boolean;
 }
+
+export type Stats = {
+  [person: string]: {
+    [task: string]: number;
+  };
+};

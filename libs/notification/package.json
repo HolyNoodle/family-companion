@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "dayjs": "^1.11.7",
+    "@famcomp/home-assistant": "*",
     "tsconfig": "workspace:*"
   },
   "devDependencies": {
