@@ -15,6 +15,10 @@ export default {
       complete: "Terminer",
     },
   },
+  stats: {
+    involment: "Participation",
+    past: "Historique",
+  },
   routes: {
     dashboard: "Statistiques",
     schedule: "Calendrier",

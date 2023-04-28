@@ -15,6 +15,10 @@ export default {
       complete: "Done",
     },
   },
+  stats: {
+    involment: "Involment",
+    past: "History",
+  },
   routes: {
     dashboard: "Statistics",
     schedule: "Schedule",

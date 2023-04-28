@@ -19,6 +19,10 @@ export interface Locale {
     dashboard: string;
     schedule: string;
   };
+  stats: {
+    involment: string;
+    past: string;
+  }
   task: {
     properties: {
       name: string;

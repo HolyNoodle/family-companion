@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import {Task} from "@famcomp/common";
 import {useDayRange, useEvents} from "src/domains/Job/utils";
 import styled from "styled-components";
 import FeedDay from "./FeedDay";
+import { Typography } from "antd";
+import { TranslatorContext } from "src/context";
 
-const LOG_SIZE = 48;
+const LOG_SIZE = 12;
 
 const FeedContainer = styled.div`
   display: flex;
@@ -16,6 +18,7 @@ const FeedContainer = styled.div`
 `;
 
 const PastJobs = ({tasks}: {tasks: Task[]}) => {
+  const {translator} = useContext(TranslatorContext);
   const start = new Date();
   start.setDate(start.getDate() - LOG_SIZE);
   const events = useEvents(tasks, start, new Date());
@@ -23,6 +26,7 @@ const PastJobs = ({tasks}: {tasks: Task[]}) => {
 
   return (
     <FeedContainer>
+      <Typography.Title level={2}>{translator.translations.stats.past}</Typography.Title>
       {days.map((date) => {
         const dayEvents = events
           .filter((e) => e.date.isSame(date, "day"))
