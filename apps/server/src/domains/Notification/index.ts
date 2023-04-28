@@ -142,7 +142,7 @@ export default class NotificationManager extends EventEmitter {
       .tag("quick")
       .target(this.getPersonShortId(person));
 
-    if (quickTasks.length === 0) {
+    if (!person.isHome || quickTasks.length === 0) {
       notification.clear();
 
       return this.connection.send(notification.build());
