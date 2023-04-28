@@ -88,7 +88,7 @@ export default class NotificationManager extends EventEmitter {
 
   syncPersonTask(person: Person, task: Task): Promise<void> {
     const notification = new MobileNotificationBuilder();
-    notification.target(person.id.split(".")[1]).tag(task.id).clear();
+    notification.target(this.getPersonShortId(person)).tag(task.id).clear();
 
     if (isTaskActive(task)) {
       if (person.isHome) {
