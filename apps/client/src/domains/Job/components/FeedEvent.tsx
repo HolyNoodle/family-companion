@@ -1,18 +1,20 @@
 import React, {useMemo} from "react";
 import styled from "styled-components";
 
-import {Popover, Space, Typography} from "antd";
+import {Button, Popover, Space, Typography} from "antd";
 import {isJobActive} from "@famcomp/common";
-import {EventItem} from "./Event";
 import dayjs from "dayjs";
 import {
   CheckOutlined,
   ClockCircleOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
+  EyeOutlined,
   MinusOutlined
 } from "@ant-design/icons";
 import PersonFromId from "src/domains/Person/views/PersonFromId";
+import {EventItem} from "../utils";
+import {useNavigate} from "react-router-dom";
 
 const Hour = styled.span`
   color: grey;
@@ -61,6 +63,7 @@ const icons = {
 };
 
 const FeedEvent = ({event}: {event: EventItem}) => {
+  const navigate = useNavigate();
   const mode = useMemo(() => {
     const active = !!event.job && isJobActive(event.task, event.job);
 
@@ -108,6 +111,7 @@ const FeedEvent = ({event}: {event: EventItem}) => {
           <Icon style={{color: colors[mode], fontSize: "1.3em"}} />
         </Popover>
         <Hour>{event.date.format("HH:mm")}</Hour>
+        <Button icon={<EyeOutlined />} onClick={() => navigate("/tasks/" + event.task.id)} />
 
         <TaskLabel strong>{event.task.label}</TaskLabel>
       </RowContainer>

@@ -1,13 +1,10 @@
-import React, {useContext, useEffect, useRef, useState} from "react";
-import {useSelector} from "react-redux";
+import React, {useContext} from "react";
 import styled from "styled-components";
 
 import {useAppDispatch} from "src/store";
 
-import {fetchTasks, selectAllTasks, selectTasksStatus} from "src/domains/Task/state";
+import {fetchTasks, useTasks} from "src/domains/Task/state";
 import {Button, List, Space} from "antd";
-import TaskForm from "src/domains/Task/components/Form";
-import {Task} from "@famcomp/common";
 import api from "src/api";
 import {
   DeleteFilled,
@@ -18,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {TranslatorContext} from "src/context";
+import {useNavigate} from "react-router-dom";
 
 const FeedContainer = styled.div`
   display: flex;
@@ -30,60 +28,18 @@ const FeedContainer = styled.div`
 
 const TaskList = () => {
   const {translator} = useContext(TranslatorContext);
-  const feedContainerRef = useRef<HTMLDivElement>();
-  const tasks = useSelector(selectAllTasks);
-  const taskStatus = useSelector(selectTasksStatus);
+  const tasks = useTasks();
   const dispatch = useAppDispatch();
-
-  useEffect(() => {
-    if (taskStatus === "idle") {
-      dispatch(fetchTasks());
-    }
-  }, [taskStatus]);
-
-  const [create, setCreate] = useState(false);
-  const [edit, setEdit] = useState<Task>(undefined);
-  const [creating, setCreating] = useState(false);
-
-  const handleSubmit = async (task: Task) => {
-    console.log(task);
-    setCreating(true);
-    try {
-      await api.pushTask(task);
-      setCreate(false);
-      setEdit(undefined);
-      dispatch(fetchTasks());
-    } finally {
-      setCreating(false);
-    }
-  };
+  const navigate = useNavigate();
 
   return (
-    <FeedContainer
-      ref={(el) => {
-        feedContainerRef.current = el;
-      }}
-    >
-      <TaskForm
-        submitting={creating}
-        open={!!edit}
-        task={edit}
-        onSubmit={handleSubmit}
-        onClose={() => setEdit(undefined)}
-      />
-      <TaskForm
-        submitting={creating}
-        open={create}
-        onSubmit={handleSubmit}
-        onClose={() => setCreate(false)}
-      />
+    <FeedContainer>
       <Space>
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => {
-            setEdit(undefined);
-            setCreate(true);
+            navigate("/tasks/create");
           }}
         >
           {translator.translations.task.actions.create}
@@ -138,8 +94,7 @@ const TaskList = () => {
               <Button
                 icon={<EditOutlined />}
                 onClick={() => {
-                  setEdit(item);
-                  setCreate(false);
+                  navigate("/tasks/" + item.id);
                 }}
               />,
               <Button

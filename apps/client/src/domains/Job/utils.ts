@@ -1,8 +1,13 @@
 import {getFutureMatches} from "@datasert/cronjs-matcher";
 import {useMemo} from "react";
-import {Task, WithId} from "@famcomp/common";
-import {EventItem} from "./components/Event";
+import {Task, Job} from "@famcomp/common";
 import dayjs from "dayjs";
+
+export interface EventItem {
+  date: dayjs.Dayjs;
+  task: Task;
+  job?: Job;
+}
 
 export const useEvents = (tasks: Task[], start: Date, end: Date, desc = false) => {
   return useMemo(() => {
