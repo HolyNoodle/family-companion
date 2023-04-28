@@ -2,11 +2,11 @@ import React, {useContext} from "react";
 import styled from "styled-components";
 
 import dayjs from "dayjs";
-import {EventItem} from "./Event";
 import FeedEvent from "./FeedEvent";
 import {Empty} from "antd";
 import {TranslatorContext} from "src/context";
 import { DateFormat } from "src/utils";
+import { EventItem } from "../utils";
 
 
 const FeedDayContainer = styled.div`

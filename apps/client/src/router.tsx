@@ -1,10 +1,12 @@
 import React, {useMemo} from "react";
-import {createBrowserRouter} from "react-router-dom";
+import {createBrowserRouter, useNavigate} from "react-router-dom";
 
 import Feed from "./domains/Job/views/Feed";
 import MainLayout from "./domains/Layout/components/MainLayout";
 import TaskList from "./domains/Task/views/List";
 import Dashboard from "./domains/Stats/views/Dashboard";
+import TaskDetails from "./domains/Task/views/TaskDetails";
+import TaskFormView from "./domains/Task/views/Form";
 
 const router = () => {
   const basename = useMemo(() => {
@@ -31,7 +33,20 @@ const router = () => {
             },
             {
               path: "tasks",
-              element: <TaskList />
+              children: [
+                {
+                  index: true,
+                  element: <TaskList />
+                },
+                {
+                  path: ":id",
+                  element: <TaskDetails />
+                },
+                {
+                  path: "create",
+                  element: <TaskFormView />
+                }
+              ]
             },
             {
               path: "dashboard",

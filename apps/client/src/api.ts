@@ -56,7 +56,7 @@ class API {
         "Content-type": "application/json"
       }
     }).then((response) => {
-      return response.json();
+      return response.json() as Promise<Task>;
     });
   }
   deleteTask(taskId: string) {
