@@ -7,7 +7,9 @@
     "start:dev": "webpack-cli serve --mode=development --env development --open --hot",
     "build": "webpack --mode=production --env production --progress",
     "lint": "eslint './src/**/*.{ts,tsx}'",
-    "lint:fix": "eslint './src/**/*.{ts,tsx}' --fix"
+    "lint:fix": "eslint './src/**/*.{ts,tsx}' --fix",
+    "test": "jest --coverage",
+    "test:dev": "jest --watch"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +17,7 @@
   "devDependencies": {
     "@famcomp/common": "*",
     "@famcomp/translations": "*",
+    "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
@@ -32,6 +35,8 @@
     "fork-ts-checker-webpack-plugin": "^8.0.0",
     "html-webpack-plugin": "^5.5.1",
     "prettier": "^2.8.7",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "tsconfig-paths-webpack-plugin": "^4.0.1",
@@ -57,10 +62,5 @@
     "react-router-dom": "^6.10.0",
     "sort-by": "^1.2.0",
     "styled-components": "^5.3.9"
-  },
-  "jest": {
-    "transformIgnorePatterns": [
-      "/node_modules/(?!antd|@ant-design|rc-.+?|@babel/runtime).+(js|jsx)$"
-    ]
   }
 }

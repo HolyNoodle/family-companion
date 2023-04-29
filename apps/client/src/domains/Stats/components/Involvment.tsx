@@ -23,7 +23,6 @@ const Involvment = ({stats, persons}: {stats: Stats; persons: Person[]}) => {
     persons.forEach((p) => {
       labels.push(p.name);
       const stat = stats[p.id] ? Object.values(stats[p.id]).reduce((a, b) => a + b) : 0;
-      console.log(p, stat);
       datasets[0].data.push(stat);
     });
 
