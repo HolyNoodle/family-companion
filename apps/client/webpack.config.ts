@@ -16,8 +16,7 @@ const webpackConfig = (env): Configuration & ProdConfiguration => ({
   },
   output: {
     path: path.join(__dirname, "/dist"),
-    filename: "build.js",
-    publicPath: "/"
+    filename: "build.js"
   },
   devServer: {
     historyApiFallback: true
@@ -40,7 +39,7 @@ const webpackConfig = (env): Configuration & ProdConfiguration => ({
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html",
+      template: "./public/index.html"
     }),
     new webpack.DefinePlugin({
       "process.env.PRODUCTION": env.production || !env.development,
