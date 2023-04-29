@@ -41,7 +41,6 @@ const webpackConfig = (env): Configuration & ProdConfiguration => ({
   plugins: [
     new HtmlWebpackPlugin({
       template: "./public/index.html",
-      publicPath: "/"
     }),
     new webpack.DefinePlugin({
       "process.env.PRODUCTION": env.production || !env.development,
