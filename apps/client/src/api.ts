@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import {Person, Stats, Task} from "@famcomp/common";
-import { getBaseURL } from "./utils";
+import {getBaseURL} from "./utils";
 
 export interface JobSchedule extends Task {
   schedule: dayjs.Dayjs[];
@@ -10,11 +10,12 @@ class API {
   host: string;
   baseURL: string;
   constructor() {
-    this.host = window.location.host;
-    this.baseURL = getBaseURL(window.location);
+    const isSelfHosted = window.location.host.indexOf(":8080") > -1;
+    this.host = isSelfHosted ? "localhost:7000" : window.location.host;
+    this.baseURL = getBaseURL(window.location) + (isSelfHosted ? "" : "api/");
   }
   buildURL(path: string) {
-    return `http://${this.host}${this.baseURL}api${path}`;
+    return `http://${this.host}${this.baseURL}${path}`;
   }
   getTasks(): Promise<Task[]> {
     return fetch(this.buildURL("/tasks"))

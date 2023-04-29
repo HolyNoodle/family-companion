@@ -1,10 +1,11 @@
 import path from "path";
-import webpack, {Configuration} from "webpack";
+import webpack, {Configuration as ProdConfiguration} from "webpack";
+import {Configuration} from "webpack-dev-server";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import {TsconfigPathsPlugin} from "tsconfig-paths-webpack-plugin";
 
-const webpackConfig = (env): Configuration => ({
+const webpackConfig = (env): Configuration & ProdConfiguration => ({
   entry: "./src/index.tsx",
   ...(env.production || !env.development ? {} : {devtool: "eval-source-map"}),
   resolve: {
@@ -15,7 +16,11 @@ const webpackConfig = (env): Configuration => ({
   },
   output: {
     path: path.join(__dirname, "/dist"),
-    filename: "build.js"
+    filename: "build.js",
+    publicPath: "/"
+  },
+  devServer: {
+    historyApiFallback: true
   },
   module: {
     rules: [
@@ -35,7 +40,8 @@ const webpackConfig = (env): Configuration => ({
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: "./public/index.html"
+      template: "./public/index.html",
+      publicPath: "/"
     }),
     new webpack.DefinePlugin({
       "process.env.PRODUCTION": env.production || !env.development,
