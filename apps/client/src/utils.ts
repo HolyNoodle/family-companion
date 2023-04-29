@@ -39,9 +39,9 @@ export const getBaseURL = (location: Location) => {
 
     const index = path.findIndex((s) => s.indexOf("hassio_ingress") > -1);
 
-
     console.log(path, index);
-    const pathElements = path.slice(0, index + 2);
+
+    const pathElements = path.slice(0, index + 1);
 
     return pathElements.join("/") + "/";
   }

@@ -1,7 +1,7 @@
 import {Layout, Space} from "antd";
-import React, { useContext } from "react";
+import React, {useContext} from "react";
 import {Link, Outlet} from "react-router-dom";
-import { TranslatorContext } from "src/context";
+import {TranslatorContext} from "src/context";
 import styled from "styled-components";
 
 const AppLayout = styled(Layout)`
@@ -16,13 +16,15 @@ const MainLayout = () => {
   const {translator} = useContext(TranslatorContext);
   return (
     <AppLayout>
-      <Layout.Header>
-        <Space>
-          <Link to={"/"}>{translator.translations.routes.schedule}</Link>
-          <Link to={"/dashboard"}>{translator.translations.routes.dashboard}</Link>
-          <Link to={"/tasks"}>{translator.translations.routes.tasks}</Link>
-        </Space>
-      </Layout.Header>
+      {window.location.search.indexOf("iframe") < 0 && (
+        <Layout.Header>
+          <Space>
+            <Link to={"/"}>{translator.translations.routes.schedule}</Link>
+            <Link to={"/dashboard"}>{translator.translations.routes.dashboard}</Link>
+            <Link to={"/tasks"}>{translator.translations.routes.tasks}</Link>
+          </Space>
+        </Layout.Header>
+      )}
       <Layout.Content>
         <Outlet />
       </Layout.Content>

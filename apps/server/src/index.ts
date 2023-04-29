@@ -36,7 +36,7 @@ const start = async () => {
     console.log("Returning default config");
     return {
       locale: "en",
-      // famCompUIBaseUrl: "http://192.168.1.35:8123/cc93577a_fam_comp/dashboard"
+      // notificationUrl: "http://192.168.1.35:8123/cc93577a_fam_comp/dashboard"
     };
   };
   const config: Options = configCheck();
@@ -44,7 +44,7 @@ const start = async () => {
 
   console.log("Configuration:");
   console.log("Language:", config.locale);
-  console.log("FamCompUIURL:", config.famCompUIBaseUrl);
+  console.log("FamCompUIURL:", config.notificationUrl);
 
   const translator = getTranslator(locale as any);
 
@@ -68,7 +68,7 @@ const start = async () => {
     connection,
     state,
     translator,
-    config.famCompUIBaseUrl
+    config.notificationUrl
   );
 
   connection.subscribeToEvent("trigger_task");

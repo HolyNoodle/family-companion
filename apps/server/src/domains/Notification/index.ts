@@ -10,7 +10,7 @@ export default class NotificationManager extends EventEmitter {
     private connection: HomeAssistantConnection,
     private state: AppState,
     private translator: ReturnType<typeof getTranslator>,
-    private famCompUIBaseUrl?: string
+    private notificationUrl?: string
   ) {
     super();
 
@@ -123,8 +123,8 @@ export default class NotificationManager extends EventEmitter {
           })
           .channelMode(ChannelMode.Default);
 
-        if (this.famCompUIBaseUrl) {
-          notification.url(this.famCompUIBaseUrl + "/tasks/" + task.id);
+        if (this.notificationUrl) {
+          notification.url(this.notificationUrl);
         }
       }
     }
