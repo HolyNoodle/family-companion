@@ -27,8 +27,24 @@ require("dayjs/locale/en");
 require("dayjs/locale/fr");
 
 export const formatDate = (locale: SupportedLanguage) => {
-  console.log(locale);
   return (date: Date, format = DateFormat.SHORT_DATE) => {
     return dayjs(date).locale(locale).format(formatters[format](locale));
   };
+};
+
+export const getBaseURL = (location: Location) => {
+  if (location.pathname.indexOf("hassio_ingress") > -1) {
+    const uri = location.pathname;
+    const path = uri.split("/");
+
+    const index = path.findIndex((s) => s.indexOf("hassio_ingress") > -1);
+
+
+    console.log(path, index);
+    const pathElements = path.slice(0, index + 2);
+
+    return pathElements.join("/") + "/";
+  }
+
+  return "/";
 };

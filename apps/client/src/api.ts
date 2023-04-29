@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import {Person, Stats, Task} from "@famcomp/common";
+import { getBaseURL } from "./utils";
 
 export interface JobSchedule extends Task {
   schedule: dayjs.Dayjs[];
@@ -10,7 +11,7 @@ class API {
   baseURL: string;
   constructor() {
     this.host = window.location.host;
-    this.baseURL = window.location.pathname || "/";
+    this.baseURL = getBaseURL(window.location);
   }
   buildURL(path: string) {
     return `http://${this.host}${this.baseURL}api${path}`;
@@ -56,7 +57,7 @@ class API {
         "Content-type": "application/json"
       }
     }).then((response) => {
-      return response.json() as Promise<Task>;
+      return response.json();
     });
   }
   deleteTask(taskId: string) {
