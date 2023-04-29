@@ -19,6 +19,8 @@ export interface NotificationData {
   channel?: string;
   mode?: "default" | "low" | "high" | "min" | "max";
   actions?: NotificationAction[];
+  url?: string;
+  clickAction?: string;
 }
 
 export interface NotificationInfo {
@@ -46,6 +48,7 @@ export class MobileNotificationBuilder {
   private actions: NotificationAction[];
   private persistent?: boolean;
   private sticky?: boolean;
+  private clickUrl?: string;
   private channel: ChannelMode = ChannelMode.Default;
 
   constructor() {
@@ -90,6 +93,10 @@ export class MobileNotificationBuilder {
     this.channel = mode;
     return this;
   }
+  url(url: string) {
+    this.clickUrl = url;
+    return this;
+  }
 
   build(): HomeAssistantMessage<NotificationInfo> {
     return {
@@ -105,6 +112,8 @@ export class MobileNotificationBuilder {
           sticky: this.sticky,
           tag: this.tagId,
           actions: this.actions.length ? this.actions : undefined,
+          url: this.clickUrl,
+          clickAction: this.clickUrl,
         },
       },
     };

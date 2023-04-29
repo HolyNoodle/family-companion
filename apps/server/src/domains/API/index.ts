@@ -22,7 +22,7 @@ export default (
   app.use(cors());
   app.use(json());
 
-  app.listen(PORT, async () => {
+  return app.listen(PORT, async () => {
     console.log(`Listening on port ${PORT}`);
 
     app.get("/tasks", (_, res) => {
@@ -112,11 +112,9 @@ export default (
 
       res.send(personMap).end();
     });
-  });
 
-  app.on("close", () => {
-    onClose?.();
+    app.on("close", () => {
+      onClose?.();
+    });
   });
-
-  return app;
 };

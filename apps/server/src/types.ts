@@ -7,4 +7,5 @@ export interface AppState {
 
 export interface Options {
   locale: string;
+  famCompUIBaseUrl?: string;
 }

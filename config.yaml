@@ -16,3 +16,4 @@ options:
   locale: en
 schema:
   locale: str
+  slug: str?
