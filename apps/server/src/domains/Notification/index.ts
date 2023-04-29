@@ -3,15 +3,14 @@ import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import { ChannelMode, MobileNotificationBuilder } from "@famcomp/notification";
 import { AppState } from "../../types";
 import { EventEmitter } from "stream";
-import { v4 } from "uuid";
-import dayjs from "dayjs";
 import { getTranslator } from "@famcomp/translations";
 
 export default class NotificationManager extends EventEmitter {
   constructor(
     private connection: HomeAssistantConnection,
     private state: AppState,
-    private translator: ReturnType<typeof getTranslator>
+    private translator: ReturnType<typeof getTranslator>,
+    private famCompUIBaseUrl?: string
   ) {
     super();
 
@@ -37,11 +36,24 @@ export default class NotificationManager extends EventEmitter {
     const personObject = this.state.persons.find(
       (p) => p.id === data.entity_id
     )!;
-    personObject.isHome = stateValue.toLocaleLowerCase() === "home";
 
-    console.log("State changed for", data.entity_id, "is now:", stateValue);
+    const newIsHome = stateValue.toLocaleLowerCase() === "home";
+    if (personObject.isHome !== newIsHome) {
+      personObject.isHome = newIsHome;
 
-    this.syncPerson(personObject);
+      console.log("State changed for", data.entity_id, "is now:", stateValue);
+      this.syncPerson(personObject);
+    }
+  }
+
+  private cleanUnknownTask(taskId: string, person: string) {
+    console.log("Clearing notification for this task for this person");
+    const notification = new MobileNotificationBuilder()
+      .clear()
+      .target(person)
+      .tag(taskId);
+
+    return this.connection.send(notification.build());
   }
 
   private handleNotificationAction(data: {
@@ -49,13 +61,13 @@ export default class NotificationManager extends EventEmitter {
     tag: string;
     reply_text: string;
   }) {
-    const [action, taskId, jobId, person] = data.action.split(".");
-    console.log("received action", action, taskId, jobId, person);
+    const [action, taskId, jobId, personId] = data.action.split(".");
+    console.log("received action", action, taskId, jobId, personId);
 
     const task = this.state.tasks.find((t) => t.id === taskId);
-
     if (!task) {
       console.log("Couldn't find task for this action", action);
+      this.cleanUnknownTask(taskId, personId);
       return;
     }
 
@@ -69,17 +81,11 @@ export default class NotificationManager extends EventEmitter {
 
     if (!job) {
       console.log("Couldn't find job for this action", action);
-      console.log("Clearing notification for this job for this person");
-      const notification = new MobileNotificationBuilder()
-        .clear()
-        .target(person.split(".")[1])
-        .tag(task.id);
-
-      this.connection.send(notification.build());
+      this.cleanUnknownTask(taskId, personId);
       return;
     }
 
-    this.emit("action", action, task, job, "person." + person);
+    this.emit("action", action, task, job, "person." + personId);
   }
 
   private getPersonShortId(person: Person) {
@@ -116,6 +122,10 @@ export default class NotificationManager extends EventEmitter {
             title: this.translator.translations.notifications.actions.cancel,
           })
           .channelMode(ChannelMode.Default);
+
+        if (this.famCompUIBaseUrl) {
+          notification.url(this.famCompUIBaseUrl + "/tasks/" + task.id);
+        }
       }
     }
 

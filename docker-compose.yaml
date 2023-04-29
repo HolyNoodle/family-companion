@@ -10,6 +10,7 @@ services:
     ports:
       - 8099:8099
       - 8080:8080
+      - 7000:7000
     volumes:
       - ./:/app:rw
       - ./docker_data:/data

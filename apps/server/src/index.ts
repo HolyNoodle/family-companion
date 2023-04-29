@@ -36,11 +36,15 @@ const start = async () => {
     console.log("Returning default config");
     return {
       locale: "en",
+      // famCompUIBaseUrl: "http://192.168.1.35:8123/cc93577a_fam_comp/dashboard"
     };
   };
   const config: Options = configCheck();
   const locale = config.locale;
-  console.log("Language:", locale);
+
+  console.log("Configuration:");
+  console.log("Language:", config.locale);
+  console.log("FamCompUIURL:", config.famCompUIBaseUrl);
 
   const translator = getTranslator(locale as any);
 
@@ -60,7 +64,12 @@ const start = async () => {
   state.persons = await connection.getPersons();
 
   const taskScheduler = new JobScheduler(state);
-  const notification = new NotificationManager(connection, state, translator);
+  const notification = new NotificationManager(
+    connection,
+    state,
+    translator,
+    config.famCompUIBaseUrl
+  );
 
   connection.subscribeToEvent("trigger_task");
   connection.addListener("trigger_task", ({ id }: { id: string }) => {
@@ -120,7 +129,7 @@ const start = async () => {
     }
   );
 
-  API(state, notification, taskScheduler, () => {
+  const app = API(state, notification, taskScheduler, () => {
     console.log("Stopping family companion app");
     taskScheduler?.stop();
     connection.stop();
@@ -129,6 +138,13 @@ const start = async () => {
   taskScheduler.start();
 
   notification.syncNotifications();
+
+  process.on("SIGTERM", () => {
+    console.info("SIGTERM signal received.");
+    app.close();
+
+    process.exit(0);
+  });
 };
 
 start();

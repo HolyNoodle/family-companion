@@ -1,0 +1,27 @@
+FROM node:alpine
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
+RUN apk update
+
+RUN yarn global add turbo
+RUN npm i -g pnpm
+
+RUN npm i -g pnpm
+RUN apk update
+RUN apk add bash nginx 
+RUN mkdir -p /run/nginx
+
+COPY ./ingress-ha.conf /etc/nginx/nginx.conf
+
+COPY . .
+
+RUN pnpm install
+RUN turbo run build
+
+EXPOSE 8099
+
+ENV STORAGE_PATH /data/db
+ENV SUPERVISOR_URL supervisor/core
+
+CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;\" & node ./apps/server/dist/index.js" ]
