@@ -1,6 +1,6 @@
 name: "Family companion"
 description: "Simple task manager addon for home assistant"
-version: "0.0.31a"
+version: "0.0.32a"
 slug: "fam_comp"
 homeassistant_api: true
 init: false
@@ -16,4 +16,4 @@ options:
   locale: en
 schema:
   locale: str
-  slug: str?
+  famCompUIBaseUrl: str?
