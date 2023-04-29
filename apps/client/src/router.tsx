@@ -7,18 +7,10 @@ import TaskList from "./domains/Task/views/List";
 import Dashboard from "./domains/Stats/views/Dashboard";
 import TaskDetails from "./domains/Task/views/TaskDetails";
 import TaskFormView from "./domains/Task/views/Form";
+import { getBaseURL } from "./utils";
 
 const router = () => {
-  const basename = useMemo(() => {
-    const uri = window.location.pathname;
-    const path = uri.split("/");
-
-    if (uri.endsWith("dashboard") || uri.endsWith("week")) {
-      return path.splice(path.length - 1, 1).join("/");
-    }
-
-    return path.join("/");
-  }, []);
+  const basename = useMemo(() => getBaseURL(window.location), []);
 
   const router = useMemo(() => {
     return createBrowserRouter(
