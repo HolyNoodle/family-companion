@@ -22,7 +22,7 @@ export default {
   routes: {
     dashboard: "Statistics",
     schedule: "Schedule",
-    tasks: "Configuration"
+    tasks: "Configuration",
   },
   task: {
     properties: {
@@ -39,6 +39,7 @@ export default {
       download: "Save",
       upload: "Import",
       confirmDelete: "Are you sure you want to delete this task?",
+      logs: "Logs",
     },
   },
 } as Locale;

@@ -6,7 +6,10 @@ export enum LogLevel {
 }
 
 class Logger {
-  constructor(private level: LogLevel = LogLevel.INFO) {}
+  public memory: string[];
+  constructor(private level: LogLevel = LogLevel.INFO, private memorySize = 1000) {
+    this.memory = [];
+  }
 
   log(
     logLevel: LogLevel,
@@ -18,7 +21,15 @@ class Logger {
 
     const date = new Date();
 
-    console.log(date.toISOString(), `[${LogLevel[logLevel]}]`, ...args);
+    const message = [date.toISOString(), `[${LogLevel[logLevel]}]`, ...args].join(" ");
+
+    this.memory.push(message);
+
+    if(this.memory.length > this.memorySize) {
+      this.memory.shift();
+    }
+
+    console.log(message);
   }
 
   info(...args: Array<string | number | { toString: () => string }>) {

@@ -115,6 +115,10 @@ export default (
       res.send(personMap).end();
     });
 
+    app.get("/logs", (_, res) => {
+      res.send(logger.memory).end();
+    });
+
     app.on("close", () => {
       onClose?.();
     });

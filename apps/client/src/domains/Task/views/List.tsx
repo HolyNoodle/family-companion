@@ -85,6 +85,25 @@ const TaskList = () => {
         >
           {translator.translations.task.actions.upload}
         </Button>
+        <Button
+          icon={<DownloadOutlined />}
+          onClick={async () => {
+            const tasks = await api.getLogs();
+
+            const aElement = document.createElement("a");
+            aElement.setAttribute(
+              "download",
+              `logs-${dayjs(new Date()).format("YYYYMMDD_HHmmss")}.txt`
+            );
+            const href = URL.createObjectURL(new Blob([tasks.join("\n")]));
+            aElement.href = href;
+            aElement.setAttribute("target", "_blank");
+            aElement.click();
+            URL.revokeObjectURL(href);
+          }}
+        >
+          {translator.translations.task.actions.logs}
+        </Button>
       </Space>
       <List
         dataSource={tasks}
