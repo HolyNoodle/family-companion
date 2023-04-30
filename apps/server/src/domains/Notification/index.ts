@@ -4,12 +4,14 @@ import { ChannelMode, MobileNotificationBuilder } from "@famcomp/notification";
 import { AppState } from "../../types";
 import { EventEmitter } from "stream";
 import { getTranslator } from "@famcomp/translations";
+import Logger from "../../logger";
 
 export default class NotificationManager extends EventEmitter {
   constructor(
     private connection: HomeAssistantConnection,
     private state: AppState,
     private translator: ReturnType<typeof getTranslator>,
+    private logger: Logger,
     private notificationUrl?: string
   ) {
     super();
@@ -41,13 +43,13 @@ export default class NotificationManager extends EventEmitter {
     if (personObject.isHome !== newIsHome) {
       personObject.isHome = newIsHome;
 
-      console.log("State changed for", data.entity_id, "is now:", stateValue);
+      this.logger.info("State changed for", data.entity_id, "is now:", stateValue);
       this.syncPerson(personObject);
     }
   }
 
   private cleanUnknownTask(taskId: string, person: string) {
-    console.log("Clearing notification for this task for this person");
+    this.logger.info("Clearing notification for this task for this person");
     const notification = new MobileNotificationBuilder()
       .clear()
       .target(person)
@@ -62,16 +64,17 @@ export default class NotificationManager extends EventEmitter {
     reply_text: string;
   }) {
     const [action, taskId, jobId, personId] = data.action.split(".");
-    console.log("received action", action, taskId, jobId, personId);
+    this.logger.info("Received action", action, taskId, personId);
 
     const task = this.state.tasks.find((t) => t.id === taskId);
     if (!task) {
-      console.log("Couldn't find task for this action", action);
+      this.logger.warn("Couldn't find task for this action", action);
       this.cleanUnknownTask(taskId, personId);
       return;
     }
 
     if (action === "trigger") {
+      this.logger.debug("Emit action", action, "on", taskId, "by quick action");
       this.emit("action", action, task);
 
       return;
@@ -80,11 +83,17 @@ export default class NotificationManager extends EventEmitter {
     const job = task.jobs?.find((j) => j.id === jobId);
 
     if (!job) {
-      console.log("Couldn't find job for this action", action);
+      this.logger.warn(
+        "Couldn't find job for this action",
+        action,
+        "on task",
+        taskId
+      );
       this.cleanUnknownTask(taskId, personId);
       return;
     }
 
+    this.logger.debug("Emit action", action, "on", taskId, "by", personId);
     this.emit("action", action, task, job, "person." + personId);
   }
 
@@ -93,6 +102,7 @@ export default class NotificationManager extends EventEmitter {
   }
 
   syncPersonTask(person: Person, task: Task): Promise<void> {
+    this.logger.debug("Syncing task", task.id, "for person", person.id);
     const notification = new MobileNotificationBuilder();
     notification.target(this.getPersonShortId(person)).tag(task.id).clear();
 
@@ -133,12 +143,14 @@ export default class NotificationManager extends EventEmitter {
   }
 
   async syncTask(task: Task) {
+    this.logger.debug("Syncing task", task.id);
     await Promise.all(
       this.state.persons.map((person) => this.syncPersonTask(person, task))
     );
   }
 
   async syncPerson(person: Person) {
+    this.logger.debug("Syncing person", person.id);
     await Promise.all(
       this.state.tasks.map((task) => this.syncPersonTask(person, task))
     );
@@ -147,6 +159,7 @@ export default class NotificationManager extends EventEmitter {
   }
 
   createQuickActionNotificationAction(person: Person) {
+    this.logger.debug("Syncing quick action notification");
     const quickTasks = this.state.tasks.filter((t) => t.quickAction);
     const notification = new MobileNotificationBuilder()
       .tag("quick")
@@ -155,6 +168,7 @@ export default class NotificationManager extends EventEmitter {
     if (!person.isHome || quickTasks.length === 0) {
       notification.clear();
 
+      this.logger.debug("Clearing quick notification for", person.id);
       return this.connection.send(notification.build());
     }
 
@@ -174,11 +188,12 @@ export default class NotificationManager extends EventEmitter {
       })
     );
 
+    this.logger.debug("Creating quick notification for", person.id);
     return this.connection.send(notification.build());
   }
 
   syncNotifications() {
-    console.log("Syncing all tasks notifications");
+    this.logger.info("Syncing all tasks notifications");
     return Promise.all(
       this.state.persons.map((person) => this.syncPerson(person))
     );

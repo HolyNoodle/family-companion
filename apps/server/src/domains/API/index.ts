@@ -8,12 +8,14 @@ import { AppState } from "../../types";
 import NotificationManager from "../Notification";
 import { JobScheduler } from "../Job";
 import { Stats, Task } from "@famcomp/common";
+import Logger from "../../logger";
 
 const PORT: number = 7000;
 export default (
   state: AppState,
   notification: NotificationManager,
   taskScheduler: JobScheduler,
+  logger: Logger,
   onClose?: () => void
 ) => {
   const app = express();
@@ -23,7 +25,7 @@ export default (
   app.use(json());
 
   return app.listen(PORT, async () => {
-    console.log(`Listening on port ${PORT}`);
+    logger.info(`Listening on port ${PORT}`);
 
     app.get("/tasks", (_, res) => {
       res.send(state.tasks).end();

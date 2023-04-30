@@ -15,6 +15,8 @@ arch:
   - i386
 options:
   locale: en
+  logLevel: 1
 schema:
   locale: str
   notificationUrl: str?
+  logLevel: "int(0, 4)"

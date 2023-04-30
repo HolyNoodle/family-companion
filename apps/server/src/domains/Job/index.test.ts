@@ -1,7 +1,8 @@
 import { Task } from "@famcomp/common";
-import { JobScheduler, getExecutionDates } from ".";
+import { JobScheduler } from ".";
 import { AppState } from "../../types";
 import dayjs from "dayjs";
+import Logger from "../../logger";
 
 jest.mock("uuid", () => ({ v4: () => "123456789" }));
 
@@ -12,65 +13,6 @@ const createTask = (id = "123"): Task =>
     label: "test",
   } as Task);
 
-describe("getExecutionDates", () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(Date.UTC(2023, 0, 1, 9, 12, 25, 346));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it("Should return empty array when endDate is equal to startDate", () => {
-    const startDate = new Date();
-    const endDate = new Date();
-
-    endDate.setSeconds(startDate.getSeconds() + 30);
-    const result = getExecutionDates(createTask(), startDate, startDate);
-
-    expect(result).toHaveLength(0);
-  });
-
-  it("Should return empty array when endDate is undefined", () => {
-    const startDate = new Date();
-
-    const result = getExecutionDates(
-      createTask(),
-      startDate,
-      undefined as any as Date
-    );
-
-    expect(result).toHaveLength(0);
-  });
-
-  it("Should return empty array when startDate is undefined", () => {
-    const startDate = new Date();
-
-    const result = getExecutionDates(
-      createTask(),
-      undefined as any as Date,
-      startDate
-    );
-
-    expect(result).toHaveLength(0);
-  });
-
-  it("Should return 3 dates over 30 seconds", () => {
-    const startDate = new Date();
-    const endDate = new Date();
-
-    endDate.setMinutes(startDate.getMinutes() + 30);
-    const result = getExecutionDates(createTask(), startDate, endDate);
-
-    expect(result).toHaveLength(3);
-    expect(result.map((d) => d.toISOString())).toStrictEqual([
-      "2023-01-01T09:20:00.000Z",
-      "2023-01-01T09:30:00.000Z",
-      "2023-01-01T09:40:00.000Z",
-    ]);
-  });
-});
 
 describe("JobScheduler", () => {
   let setTimeoutSpy: jest.SpyInstance;
@@ -93,7 +35,7 @@ describe("JobScheduler", () => {
   });
 
   it("Should instanciate JobScheduler", () => {
-    const scheduler = new JobScheduler({ tasks: [], persons: [] });
+    const scheduler = new JobScheduler({ tasks: [], persons: [] }, new Logger());
 
     expect(scheduler).toBeInstanceOf(JobScheduler);
   });
@@ -101,7 +43,7 @@ describe("JobScheduler", () => {
   it("Should start job scheduler", () => {
     const scheduler = new JobScheduler({
       tasks: [createTask(), createTask("234")],
-    } as AppState);
+    } as AppState, new Logger());
 
     scheduler.start();
 
@@ -122,7 +64,7 @@ describe("JobScheduler", () => {
   it("Should stop scheduled jobs", () => {
     const scheduler = new JobScheduler({
       tasks: [createTask(), createTask("234")],
-    } as AppState);
+    } as AppState, new Logger());
 
     scheduler["taskIds"] = {
       test123: "timer",
@@ -139,7 +81,7 @@ describe("JobScheduler", () => {
 
   it("Should trigger task", () => {
     const task = createTask();
-    const scheduler = new JobScheduler({ tasks: [{ ...task }] } as AppState);
+    const scheduler = new JobScheduler({ tasks: [{ ...task }] } as AppState, new Logger());
 
     scheduler.start();
 
