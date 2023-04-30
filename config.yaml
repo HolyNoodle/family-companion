@@ -19,4 +19,4 @@ options:
 schema:
   locale: str
   notificationUrl: str?
-  logLevel: "int(0, 4)"
+  logLevel: "int(0,4)"
