@@ -39,6 +39,7 @@ export default {
       download: "Sauvegarde",
       upload: "Importer",
       confirmDelete: "Êtes vous sûre de vouloir supprimer cette tâche ?",
+      logs: "Logs",
     },
   },
 } as Locale;

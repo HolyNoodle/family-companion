@@ -38,6 +38,7 @@ export interface Locale {
       upload: string;
       download: string;
       confirmDelete: string;
+      logs: string;
     };
   };
 }

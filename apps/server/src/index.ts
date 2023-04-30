@@ -8,9 +8,11 @@ import NotificationManager from "./domains/Notification";
 import API from "./domains/API";
 import { existsSync, readFileSync } from "fs";
 import { Options } from "./types";
+import Logger, { LogLevel } from "./logger";
 
+const defaultLogger = new Logger();
 if (!process.env.STORAGE_PATH) {
-  console.error(
+  defaultLogger.error(
     "Please specify a STORAGE_PATH variable in the environment variables"
   );
   process.exit(1);
@@ -20,54 +22,62 @@ const storagePath = process.env.STORAGE_PATH;
 State.setPath(storagePath);
 
 const start = async () => {
-  console.log("Checking configuration");
+  defaultLogger.info("Checking configuration");
   const configCheck = (): Options => {
     try {
       if (existsSync("/data/options.json")) {
-        console.log("Loading config");
+        defaultLogger.info("Loading config");
         return JSON.parse(readFileSync("/data/options.json").toString());
       } else {
-        console.log("No configuration present");
+        defaultLogger.info("No configuration present");
       }
-    } catch (ex) {
-      console.error("Error while checking config file", ex);
+    } catch (ex: any) {
+      defaultLogger.error("Error while checking config file", ex);
     }
 
-    console.log("Returning default config");
+    defaultLogger.info("Returning default config");
     return {
       locale: "en",
+      logLevel: LogLevel.INFO,
       // notificationUrl: "http://192.168.1.35:8123/cc93577a_fam_comp/dashboard"
     };
   };
+
   const config: Options = configCheck();
   const locale = config.locale;
 
-  console.log("Configuration:");
-  console.log("Language:", config.locale);
-  console.log("FamCompUIURL:", config.notificationUrl);
+  const logger = new Logger(config.logLevel);
+
+  logger.info("Configuration:");
+  logger.info("Log level:", LogLevel[config.logLevel]);
+  logger.info("Language:", config.locale);
+  logger.info("Notification url:", config.notificationUrl || "N/A");
 
   const translator = getTranslator(locale as any);
 
   const connection = new HomeAssistantConnection(process.env.SUPERVISOR_TOKEN!);
-  console.log("Starting home assistant connection");
+  logger.info("Starting home assistant connection");
   try {
     await connection.start();
-    console.log("Home assistant connection is ready");
-  } catch (ex) {
-    console.error("An error occured while starting home assistant connection");
-    console.error("Error:", ex);
+    logger.info("Home assistant connection is ready");
+  } catch (ex: any) {
+    logger.error("An error occured while starting home assistant connection");
+    logger.error("Error:", ex);
     process.exit(1);
   }
 
+  logger.debug("Retrieving state");
   const state = await State.get();
-  console.log("Retrieving persons");
+
+  logger.debug("Retrieving persons");
   state.persons = await connection.getPersons();
 
-  const taskScheduler = new JobScheduler(state);
+  const taskScheduler = new JobScheduler(state, logger);
   const notification = new NotificationManager(
     connection,
     state,
     translator,
+    logger,
     config.notificationUrl
   );
 
@@ -76,16 +86,16 @@ const start = async () => {
     const task = state.tasks.find((t) => t.id === id);
 
     if (!task) {
-      console.log("Task", id, "not found");
+      logger.info("Task", id, "not found");
       return;
     }
 
-    console.log("Task trigger through home assistant event", task.id);
+    logger.info("Task trigger through home assistant event", task.id);
     taskScheduler.triggerTask(task);
   });
 
   taskScheduler.on("start_job", (task: Task, job: Job) => {
-    console.log("scheduler start job");
+    logger.info("scheduler start job");
     notification.syncTask(task);
 
     connection.fireEvent("task_triggered", {
@@ -129,8 +139,8 @@ const start = async () => {
     }
   );
 
-  const app = API(state, notification, taskScheduler, () => {
-    console.log("Stopping family companion app");
+  const app = API(state, notification, taskScheduler, logger, () => {
+    logger.info("Stopping family companion app");
     taskScheduler?.stop();
     connection.stop();
   });
@@ -140,7 +150,7 @@ const start = async () => {
   notification.syncNotifications();
 
   process.on("SIGTERM", () => {
-    console.info("SIGTERM signal received.");
+    logger.info("SIGTERM signal received.");
     app.close();
 
     process.exit(0);

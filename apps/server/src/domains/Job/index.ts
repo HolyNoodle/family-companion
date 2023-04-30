@@ -5,12 +5,15 @@ import { v4 } from "uuid";
 import { Job, Task, isTaskActive } from "@famcomp/common";
 import dayjs from "dayjs";
 import { AppState } from "../../types";
+import Logger from "../../logger";
 
 export class JobScheduler extends EventEmitter {
   private taskIds: { [id: string]: NodeJS.Timeout };
   private schedulerTimer: NodeJS.Timeout | undefined;
 
-  constructor(private state: AppState) {
+  constructor(private state: AppState,
+    private logger: Logger,
+    ) {
     super();
 
     this.taskIds = {};
@@ -21,7 +24,7 @@ export class JobScheduler extends EventEmitter {
 
     this.schedulerTimer = setInterval(
       this.schedulerProcess.bind(this),
-      60 * 60 * 1000
+      30 * 60 * 1000
     );
     this.schedulerProcess();
   }
@@ -45,7 +48,7 @@ export class JobScheduler extends EventEmitter {
   private stopTask(id: string) {
     const timeout = this.taskIds[id];
 
-    console.log("Clear timeout for task", id);
+    this.logger.info("Clear timeout for task", id);
     clearTimeout(timeout);
 
     delete this.taskIds[id];
@@ -61,7 +64,7 @@ export class JobScheduler extends EventEmitter {
     endAt.setSeconds(endAt.getSeconds() + 1);
 
     const start = new Date();
-    start.setSeconds(start.getSeconds() + 1);
+    start.setSeconds(start.getSeconds() - 1);
     const nextDateString = getFutureMatches(task.cron, {
       matchCount: 1,
       startAt: start.toISOString(),
@@ -69,7 +72,7 @@ export class JobScheduler extends EventEmitter {
     }).pop();
 
     if (!nextDateString) {
-      console.log("Skipping", task.label, task.cron);
+      this.logger.debug("Skipping", task.label, task.cron);
       return undefined;
     }
 
@@ -78,10 +81,9 @@ export class JobScheduler extends EventEmitter {
     nextDate.setMilliseconds(0);
     const now = new Date();
 
-    console.log(
+    this.logger.debug(
       "Register next job for",
-      `"${task.label}"`,
-      `(${task.id})`,
+      task.id,
       "at",
       nextDate.toISOString()
     );
@@ -96,15 +98,13 @@ export class JobScheduler extends EventEmitter {
   }
 
   triggerTask(task: Task) {
-    console.log("Job triggered for", `"${task.label}"`, `(${task.id})`);
-    if (!task.jobs) {
-      task.jobs = [];
+    if(isTaskActive(task)) {
+      this.logger.debug("Task", task.id, "already active, skipping trigger");
+      return undefined;
     }
 
-    if(isTaskActive(task)) {
-      console.log("Task", task.label, "already active");
-      
-      return undefined;
+    if (!task.jobs) {
+      task.jobs = [];
     }
 
     const job: Job = {
@@ -113,10 +113,12 @@ export class JobScheduler extends EventEmitter {
       participations: [],
     };
 
-    if (task.jobs.unshift(job) > 500) {
-      task.jobs = task.jobs.slice(0, 500);
+    if (task.jobs.unshift(job) > 100) {
+      this.logger.debug("Limit size of jobs to", 100, "for task", );
+      task.jobs = task.jobs.slice(0, 100);
     }
 
+    this.logger.info("Job started for", task.id);
     this.emit("start_job", task, job);
 
     return job;
@@ -142,28 +144,3 @@ export class JobScheduler extends EventEmitter {
   }
 }
 
-export const getExecutionDates = (
-  task: Task,
-  start: Date,
-  end: Date
-): Date[] => {
-  if (!task.cron || !start || !end) {
-    return [];
-  }
-
-  try {
-    return getFutureMatches(task.cron, {
-      matchCount: 100,
-      endAt: end.toISOString(),
-      startAt: start.toISOString(),
-    }).map((d) => {
-      const date = new Date(d);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
-
-      return date;
-    });
-  } catch {
-    return [];
-  }
-};

@@ -83,6 +83,11 @@ class API {
         );
       });
   }
+  getLogs() {
+    return fetch(this.buildURL("/logs")).then((response) => {
+      return response.json() as Promise<string[]>;
+    });
+  }
 }
 
 export default new API();

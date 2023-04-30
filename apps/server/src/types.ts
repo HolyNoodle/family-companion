@@ -1,4 +1,5 @@
 import { Person, Task } from "@famcomp/common";
+import { LogLevel } from "./logger";
 
 export interface AppState {
   tasks: Task[];
@@ -8,4 +9,5 @@ export interface AppState {
 export interface Options {
   locale: string;
   notificationUrl?: string;
+  logLevel: LogLevel;
 }
