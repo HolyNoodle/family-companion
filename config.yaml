@@ -10,7 +10,9 @@ url: https://github.com/HolyNoodle/family-companion
 arch:
   - aarch64
   - amd64
-  - arm64
+  - armhf
+  - armv7
+  - i386
 options:
   locale: en
   logLevel: 1
