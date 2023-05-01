@@ -1,4 +1,4 @@
-FROM holynoodledev/family-companion:0.1.2a
+FROM holynoodledev/family-companion:0.1.3a
 
 WORKDIR /app
 
