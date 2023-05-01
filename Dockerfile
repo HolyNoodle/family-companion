@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 holynoodledev/family-companion:0.1.4a
+FROM --platform=linux/amd64 holynoodledev/family-companion:0.1.5a
 
 WORKDIR /app
 
