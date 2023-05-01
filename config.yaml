@@ -1,6 +1,6 @@
 name: "Family companion"
 description: "Simple task manager addon for home assistant"
-version: 0.1.5a
+version: 0.1.6a
 slug: "fam_comp"
 homeassistant_api: true
 init: false
@@ -8,7 +8,11 @@ ingress: true
 panel_admin: false
 url: https://github.com/HolyNoodle/family-companion
 arch:
+  - aarch64
   - amd64
+  - armhf
+  - armv7
+  - i386
 options:
   locale: en
   logLevel: 1
