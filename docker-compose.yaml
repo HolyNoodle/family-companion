@@ -2,6 +2,7 @@ version: "2"
 
 services:
   app:
+    # image: holynoodledev/family-companion:0.14
     build:
       dockerfile: Dockerfile.dev
     environment:
