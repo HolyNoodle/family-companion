@@ -34,6 +34,7 @@ jobs:
 
       - name: Jest Coverage Comment
         uses: MishaKav/jest-coverage-comment@main
+        if: always()
         with:
           multiple-files: |
             apps/client, ./apps/client/coverage/coverage-summary.json
