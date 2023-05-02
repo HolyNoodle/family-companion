@@ -7,7 +7,7 @@ TDB
 
 Add this repository to your addon repositories. Family companion should be avaialble.
 
-Installation will take some time as this will compile the solution from source code. For now at least, it can take 20 minutes on my RPI 4.
+Installation takes 2 minutes on my RPI4.
 
 # Documentation
 
@@ -59,13 +59,33 @@ Parameter:
 This addon is deeply integrated with companion app. Each person should set there companion app name to their person name example:
 user Paul, is an entity Person with id person.paul. It should have a service called mobile_app_paul.
 
-To do, go in the companion app settings, select the server, change the name. Reboot the companion app, it'll trigger the new service.
+To do so, go in the companion app settings, select the server, change the name. Reboot the companion app, it'll trigger the new service.
 
 Notifications have actions in order to complete or cancel them. This will allow the addon to follow who did what and when.
 
+### Quick actions
+
+Some tasks can be set up as quick action. This will add a persistent notification that allows to trigger the task. Android allow up to 3 buttons. So consider no adding to much quick actions.
+
+### Click Action
+
+A `notificationURL` can be set up in the addon configuration. It sets up the click action redirection when clicking on the notification.
+
 ## Translations
 
-None yet. TBD
+EN and FR Supported. Set language in the configuration of the addon. 
+
+## Log
+
+Log level goes from 0 to 4 (debug, info, warning, error)
+Full logs can be downloaded from the UI
+
+# Next steps
+
+- Tests (unit) + CI with coverage
+- Change log
+- Test (integration)
+- Reduce docker size (337MB, should be able to reduce it to around 230MB)
 
 # Contributing
 
