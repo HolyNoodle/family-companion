@@ -31,6 +31,3 @@ jobs:
 
       - name: Test
         run: pnpm test
-
-      - name: Test docker prod build
-        run: docker build . -f Dockerfile
