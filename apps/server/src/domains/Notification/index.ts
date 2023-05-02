@@ -1,6 +1,9 @@
 import { Person, Task, isTaskActive } from "@famcomp/common";
-import { HomeAssistantConnection } from "@famcomp/home-assistant";
-import { ChannelMode, MobileNotificationBuilder } from "@famcomp/notification";
+import {
+  HomeAssistantConnection,
+  ChannelMode,
+  MobileNotificationBuilder,
+} from "@famcomp/home-assistant";
 import { AppState } from "../../types";
 import { EventEmitter } from "stream";
 import { getTranslator } from "@famcomp/translations";
@@ -43,7 +46,12 @@ export default class NotificationManager extends EventEmitter {
     if (personObject.isHome !== newIsHome) {
       personObject.isHome = newIsHome;
 
-      this.logger.info("State changed for", data.entity_id, "is now:", stateValue);
+      this.logger.info(
+        "State changed for",
+        data.entity_id,
+        "is now:",
+        stateValue
+      );
       this.syncPerson(personObject);
     }
   }

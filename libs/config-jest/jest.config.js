@@ -3,7 +3,7 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   collectCoverageFrom: ["src/**/*.ts"],
-  coverageReporters: ["json-summary"],
+  coverageReporters: ["lcov", "json-summary"],
   coverageThreshold: {
     global: {
       branches: 0,

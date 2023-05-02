@@ -22,7 +22,6 @@
     "dayjs": "^1.11.7",
     "@famcomp/common": "*",
     "@famcomp/translations": "*",
-    "@famcomp/notification": "*",
     "@famcomp/home-assistant": "*",
     "jestconfig": "workspace:*"
   },

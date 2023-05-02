@@ -26,6 +26,9 @@ const formatters: {
 require("dayjs/locale/en");
 require("dayjs/locale/fr");
 
+const localizedFormat = require("dayjs/plugin/localizedFormat");
+dayjs.extend(localizedFormat);
+
 export const formatDate = (locale: SupportedLanguage) => {
   return (date: Date, format = DateFormat.SHORT_DATE) => {
     return dayjs(date).locale(locale).format(formatters[format](locale));
