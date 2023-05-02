@@ -26,7 +26,7 @@ export const getTranslator = (locale: SupportedLanguage) => {
     SupportedLanguages[locale] || SupportedLanguages[defaultLanguage];
 
   return {
-    locale,
+    locale: SupportedLanguages[locale] ? locale : defaultLanguage,
     translations,
     interpolate,
   };
