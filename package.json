@@ -2,7 +2,8 @@
   "scripts": {
     "build:prod": "sh ./build.sh",
     "build": "turbo build",
-    "test": "turbo test --continue"
+    "test": "turbo test --continue",
+    "start:dev": "docker compose build && docker compose up"
   },
   "devDependencies": {
     "concurrently": "^8.0.1",

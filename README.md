@@ -1,6 +1,27 @@
 # Family companion
 
-Simple task manager addon for Home assistant
+Simple task manager addon for Home assistant.
+
+It helps follow the tasks to do or not when at home. It uses the companion app notification system in order to manage notification and actions.
+
+When a task is triggered (has to be done) a notification will show up on the mobile phone of everyone at home.
+
+A quick action notification is also convenient for triggering something you've seen somewhere that has to be done.
+
+<div style="display: flex">
+<img margin="auto" src="docs/task_notification.jpg"
+     alt="Task notification" width="30%" style="max-width: 300px" />
+<img margin="auto" src="docs/quick_action.jpg"
+     alt="Task notification" width="70%" style="max-width: 600px" />
+</div>
+
+Eveything can be configured from the UI of the addon (which displays a panel accessible by everyone with **write** capability, so please **care** when sharing):
+
+Sorry for the lame video for now:
+
+<video controls width="250">
+  <source src="docs/demo_ui.webm" type="video/webm" width="50%" style="max-width: 600px" />
+</video>
 
 # Installation
 
@@ -77,7 +98,7 @@ The CRON lib used is: https://github.com/datasert/cronjs. Read their doc to full
 
 ## Translations
 
-EN and FR Supported. Set language in the configuration of the addon. 
+EN and FR Supported. Set language in the configuration of the addon.
 
 ## Log
 
