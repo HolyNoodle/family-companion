@@ -36,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
-          filename: Dockerfile.local
+          file: Dockerfile.local
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/family-companion:${{ env.VERSION }}
           platforms: linux/amd64,linux/arm64,linux/aarch64
