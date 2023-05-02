@@ -16,4 +16,4 @@ jobs:
           fetch-depth: 2
 
       - name: Test docker prod build
-        run: docker build . -f Dockerfile.base
+        run: docker buildx build . -f Dockerfile.base
