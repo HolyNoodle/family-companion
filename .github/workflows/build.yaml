@@ -1,4 +1,4 @@
-name: Build
+name: Build docker images and bump version
 on:
   push:
     branches:

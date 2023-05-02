@@ -1,9 +1,9 @@
-name: Pull request
+name: Code checks
 on:
   pull_request:
     types: [opened, synchronize]
 jobs:
-  install:
+  code-checks:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     name: install

@@ -1,11 +1,11 @@
-name: Pull request
+name: Build
 on:
   pull_request:
     types: [opened, synchronize]
-  paths:
-    - Dockerfile.base
+    paths:
+      - Dockerfile.base
 jobs:
-  install:
+  build:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     name: install
