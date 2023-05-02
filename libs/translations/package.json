@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest --coverage --passWithNoTests",
+    "test": "jest --coverage",
     "test:dev": "jest --watch"
   },
   "keywords": [],
