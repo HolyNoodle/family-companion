@@ -28,10 +28,10 @@ jobs:
       #     username: ${{ secrets.DOCKERHUB_USERNAME }}
       #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set variables
-        run: |
-          VER=$(cat ./VERSION)
-          echo "VERSION=$VER" >> $GITHUB_ENV
+      # - name: Set variables
+      #   run: |
+      #     VER=$(cat ./VERSION)
+      #     echo "VERSION=$VER" >> $GITHUB_ENV
 
       # - name: Build and push
       #   uses: docker/build-push-action@v4
@@ -44,6 +44,7 @@ jobs:
       #     platforms: linux/amd64,linux/arm64,linux/aarch64
 
       - name: Bump version
-        run: sh ./bump_version.sh
-        permissions:
-          contents: write
+        run: | 
+          git config --global user.name "Continuous Integration"
+          git config --global user.email "ci@holynoodle.github.com"
+          sh ./bump_version.sh
