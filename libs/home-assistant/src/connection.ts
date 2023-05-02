@@ -51,15 +51,6 @@ export type HomeAssistantResponse =
       };
     };
 
-export type NotificationInfo =
-  | {
-      message: string;
-      title: string;
-    }
-  | {
-      message: "clear_notification";
-    };
-
 export type HomeAssistantMessage<T> = HomeAssistantMessageRaw<T> &
   Partial<WithId<number>>;
 
@@ -94,9 +85,8 @@ export class HomeAssistantConnection extends EventEmitter {
     console.log("Contacting Home Assistant instance", url);
 
     try {
-    this.ws = new WebSocket(url);
-    }
-    catch(ex) {
+      this.ws = new WebSocket(url);
+    } catch (ex) {
       console.error(ex);
       return Promise.reject(ex);
     }
@@ -186,21 +176,7 @@ export class HomeAssistantConnection extends EventEmitter {
       type: "get_config",
     });
   }
-
-  createOrUpdateEntity(entity: EntityState) {
-    const url =
-      "http://" + process.env.SUPERVISOR_URL! + "/states/" + entity.entity_id;
-
-    return fetch(url, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify({
-        state: entity.state,
-        attributes: entity.attributes,
-      }),
-    });
-  }
-
+  
   fireEvent(event: string, data?: {}) {
     this.send({
       type: "fire_event",

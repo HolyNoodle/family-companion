@@ -1,4 +1,4 @@
-import { HomeAssistantMessage } from "@famcomp/home-assistant";
+import { HomeAssistantMessage } from "./connection";
 
 export type NotificationAction =
   | {
@@ -24,7 +24,7 @@ export interface NotificationData {
 }
 
 export interface NotificationInfo {
-  message: string;
+  message: string | "clear_notification";
   title?: string;
   data?: NotificationData;
 }
