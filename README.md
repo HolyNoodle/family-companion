@@ -20,7 +20,7 @@ Eveything can be configured from the UI of the addon (which displays a panel acc
 Sorry for the lame video for now:
 
 <video controls width="100%" style="max-width: 600px">
-  <source src="docs/demo_ui.webm" type="video/webm" />
+  <source src="docs/demo_ui.webm" type="video/webm">
 </video>
 
 # Installation
