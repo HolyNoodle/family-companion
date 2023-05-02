@@ -7,7 +7,7 @@ RUN yarn global add turbo
 COPY . .
 
 RUN turbo prune --scope=@famcomp/server --scope=@famcomp/client --docker
-RUN echo "MACHIN chose"
+
 # Add lockfile and package.json's of isolated subworkspace
 FROM --platform=$BUILDPLATFORM node:18-alpine AS installer
 RUN apk add --no-cache libc6-compat
