@@ -2,7 +2,7 @@
   "scripts": {
     "build:prod": "sh ./build.sh",
     "build": "turbo build",
-    "test": "turbo test"
+    "test": "turbo test --continue"
   },
   "devDependencies": {
     "concurrently": "^8.0.1",
