@@ -38,6 +38,7 @@ jobs:
           context: .
           file: Dockerfile.local
           push: true
+          provenance: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/family-companion:${{ env.VERSION }}
           platforms: linux/amd64,linux/arm64,linux/aarch64
 
