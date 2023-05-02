@@ -9,9 +9,9 @@ When a task is triggered (has to be done) a notification will show up on the mob
 A quick action notification is also convenient for triggering something you've seen somewhere that has to be done.
 
 <div style="display: flex">
-<img margin="auto" src="docs/task_notification.jpg"
+<img src="docs/task_notification.jpg"
      alt="Task notification" width="30%" style="max-width: 300px" />
-<img margin="auto" src="docs/quick_action.jpg"
+<img src="docs/quick_action.jpg"
      alt="Task notification" width="70%" style="max-width: 600px" />
 </div>
 
@@ -19,9 +19,8 @@ Eveything can be configured from the UI of the addon (which displays a panel acc
 
 Sorry for the lame video for now:
 
-<video controls width="100%" style="max-width: 600px">
-  <source src="docs/demo_ui.webm" type="video/webm">
-</video>
+<img controls width="100%" style="max-width: 1024px" src="docs/demo_ui.gif"
+     alt="Web UI demo" />
 
 # Installation
 
