@@ -14,7 +14,8 @@
   "license": "ISC",
   "dependencies": {
     "dayjs": "^1.11.7",
-    "tsconfig": "workspace:*"
+    "tsconfig": "workspace:*",
+    "jestconfig": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

@@ -228,6 +228,9 @@ importers:
       dayjs:
         specifier: ^1.11.7
         version: 1.11.7
+      jestconfig:
+        specifier: workspace:*
+        version: link:../config-jest
       tsconfig:
         specifier: workspace:*
         version: link:../config-ts
@@ -285,6 +288,9 @@ importers:
 
   libs/translations:
     dependencies:
+      jestconfig:
+        specifier: workspace:*
+        version: link:../config-jest
       tsconfig:
         specifier: workspace:*
         version: link:../config-ts
