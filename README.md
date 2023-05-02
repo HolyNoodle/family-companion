@@ -1,7 +1,6 @@
 # Family companion
 
 Simple task manager addon for Home assistant
-TDB
 
 # Installation
 
@@ -71,6 +70,11 @@ Some tasks can be set up as quick action. This will add a persistent notificatio
 
 A `notificationURL` can be set up in the addon configuration. It sets up the click action redirection when clicking on the notification.
 
+## CRON strings
+
+This application uses CRON strings to determine the next iterations of the tasks.
+The CRON lib used is: https://github.com/datasert/cronjs. Read their doc to fully understand how to define recurrent (or not) tasks
+
 ## Translations
 
 EN and FR Supported. Set language in the configuration of the addon. 
@@ -78,7 +82,7 @@ EN and FR Supported. Set language in the configuration of the addon.
 ## Log
 
 Log level goes from 0 to 4 (debug, info, warning, error)
-Full logs can be downloaded from the UI
+Full logs can be downloaded from the UI.
 
 # Next steps
 

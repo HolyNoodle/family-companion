@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-    path: 
+    paths: 
       - VERSION
 
 jobs:
@@ -46,7 +46,10 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v8,linux/arm/v7,linux/arm/v6
 
       - name: Bump version
-        run: | 
-          git config --global user.name "Continuous Integration"
-          git config --global user.email "ci@holynoodle.github.com"
-          sh ./bump_version.sh
+        run: sh ./bump_version.sh
+
+      - name: Create Version Bump Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore: version bump ${{ env.VERSION }}"
+          title: chore: "version bump ${{ env.VERSION }}"
