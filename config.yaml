@@ -7,12 +7,13 @@ init: false
 ingress: true
 panel_admin: false
 url: https://github.com/HolyNoodle/family-companion
+image: holynoodledev/{arch}-addon-family-companion
 arch:
   - aarch64
   - amd64
+  - armv7
   - armhf
   - armv7
-  - i386
 options:
   locale: en
   logLevel: 1

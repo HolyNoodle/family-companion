@@ -1,49 +1,5 @@
-FROM node:18-alpine AS builder
-RUN apk add --no-cache libc6-compat
-RUN apk update
-# Set working directory
-WORKDIR /app
-RUN yarn global add turbo
-COPY . .
+FROM holynoodledev/family-companion:0.1.11a
 
-RUN turbo prune --scope=@famcomp/server --scope=@famcomp/client --docker
-
-# Add lockfile and package.json's of isolated subworkspace
-FROM node:18-alpine AS installer
-RUN apk add --no-cache libc6-compat
-RUN apk update
 WORKDIR /app
 
-RUN yarn global add turbo
-RUN yarn global add pnpm
- 
-# First install the dependencies (as they change less often)
-COPY .gitignore .gitignore
-COPY --from=builder /app/out/full .
-COPY  pnpm-lock.yaml ./pnpm-lock.yaml
-RUN pnpm install
- 
-# Build the project
-RUN turbo run build
-RUN find . -name "node_modules" -type d -prune -exec rm -rf '{}' +
-
-FROM node:18-alpine AS runner
-WORKDIR /app
-RUN yarn global add pnpm
-
-RUN apk update
-RUN apk add bash nginx 
-RUN mkdir -p /run/nginx
-
-COPY ./ingress-ha.conf /etc/nginx/nginx.conf
-
-COPY --from=installer /app .
-
-RUN pnpm install --production
- 
-EXPOSE 8099
-
-ENV STORAGE_PATH /data/db
-ENV SUPERVISOR_URL supervisor/core
-
-CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;\" & node /app/apps/server/dist/index.js" ]
+CMD [ "/bin/bash", "-c", "nginx -g \"daemon off;\" & node ./apps/server/dist/index.js" ]
