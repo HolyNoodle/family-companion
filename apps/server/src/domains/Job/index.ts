@@ -71,9 +71,10 @@ export class JobScheduler extends EventEmitter {
       endAt: endAt.toISOString(),
     }).pop();
 
+
     if (!nextDateString) {
       this.logger.debug("Skipping", task.label, task.cron);
-      return undefined;
+      return;
     }
 
     const nextDate = new Date(nextDateString);
@@ -89,6 +90,7 @@ export class JobScheduler extends EventEmitter {
     );
 
     const timer = setTimeout(() => {
+      delete this.taskIds[task.id];
       this.triggerTask(task);
 
       this.startTask(task);
