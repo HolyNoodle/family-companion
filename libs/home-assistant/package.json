@@ -15,7 +15,8 @@
   "dependencies": {
     "@famcomp/common": "*",
     "ws": "^8.13.0",
-    "tsconfig": "workspace:*"
+    "tsconfig": "workspace:*",
+    "jestconfig": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

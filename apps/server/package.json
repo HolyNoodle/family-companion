@@ -23,7 +23,8 @@
     "@famcomp/common": "*",
     "@famcomp/translations": "*",
     "@famcomp/notification": "*",
-    "@famcomp/home-assistant": "*"
+    "@famcomp/home-assistant": "*",
+    "jestconfig": "workspace:*"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",

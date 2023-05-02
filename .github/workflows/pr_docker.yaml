@@ -1,4 +1,4 @@
-name: Build
+name: Docker build
 on:
   pull_request:
     types: [opened, synchronize]
@@ -8,7 +8,7 @@ jobs:
   build:
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    name: install
+    name: Docker build
 
     steps:
       - uses: actions/checkout@v3

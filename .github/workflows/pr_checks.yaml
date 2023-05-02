@@ -1,0 +1,44 @@
+name: Code checks
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  code-checks:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    name: Code checks
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 8.2.0
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Jest Coverage Comment
+        uses: MishaKav/jest-coverage-comment@main
+        with:
+          multiple-files: |
+            apps/client, ./apps/client/coverage/coverage-summary.json
+            apps/server, ./apps/server/coverage/coverage-summary.json
+            libs/common, ./libs/common/coverage/coverage-summary.json
+            libs/home-assistant, ./libs/home-assistant/coverage/coverage-summary.json
+            libs/notification, ./libs/notification/coverage/coverage-summary.json
+            libs/translations, ./libs/translations/coverage/coverage-summary.json
