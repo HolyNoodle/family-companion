@@ -64,14 +64,9 @@ export class HomeAssistantConnection extends EventEmitter {
   private ws?: WebSocket;
   private ready = false;
   private lastId = 0;
-  private headers: any;
 
   constructor(private token: string) {
     super();
-
-    this.headers = {
-      Authorization: `Bearer ${token}`,
-    };
   }
 
   async stop() {
@@ -84,12 +79,11 @@ export class HomeAssistantConnection extends EventEmitter {
 
     console.log("Contacting Home Assistant instance", url);
 
-    try {
-      this.ws = new WebSocket(url);
-    } catch (ex) {
-      console.error(ex);
-      return Promise.reject(ex);
-    }
+    this.ws = new WebSocket(url);
+
+    this.ws.onerror = (ex) => {
+      console.error("Web socket error", ex);
+    };
 
     let authPromiseResolver: Function;
     let authPromiseRejecter: Function;
@@ -176,7 +170,7 @@ export class HomeAssistantConnection extends EventEmitter {
       type: "get_config",
     });
   }
-  
+
   fireEvent(event: string, data?: {}) {
     this.send({
       type: "fire_event",

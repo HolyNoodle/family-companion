@@ -99,6 +99,23 @@ describe("HomeAssistantConnection", () => {
     await expect(startPromise).rejects.toBe("Invalid auth");
   });
 
+  it("Should log when  socket error", async () => {
+    const error = jest.spyOn(console, "error");
+    const connection = new HomeAssistantConnection("123token");
+
+    connection.start();
+
+    expect(connection["ws"]).toBeInstanceOf(WebSocket);
+
+    const ws = connection["ws"];
+
+    ws!.onerror!({ error: "test error" } as any);
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error).toHaveBeenCalledWith("Web socket error", {
+      error: "test error",
+    });
+  });
+
   it("Should emit event when result is received", async () => {
     const connection = new HomeAssistantConnection("123token");
 
@@ -125,6 +142,37 @@ describe("HomeAssistantConnection", () => {
 
     expect(eventSpy).toHaveBeenCalledTimes(1);
     expect(eventSpy).toHaveBeenCalledWith({ test: "name" });
+  });
+
+  it("Should emit event when event message is received", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+    connection.start();
+
+    const eventSpy = jest.fn();
+    connection.addListener("event name", eventSpy);
+
+    expect(connection["ws"]).toBeInstanceOf(WebSocket);
+
+    const ws = connection["ws"];
+
+    ws!.onopen!(undefined as any);
+
+    ws!.onmessage!({
+      data: Buffer.from(
+        JSON.stringify({
+          type: "event",
+          event: {
+            event_type: "event name",
+            data: { test: "name" },
+            context: { user_id: "testId" },
+          },
+        })
+      ),
+    } as any);
+
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+    expect(eventSpy).toHaveBeenCalledWith({ test: "name" }, "testId");
   });
 
   it("Should send message to home assistant", async () => {
@@ -223,7 +271,6 @@ describe("HomeAssistantConnection", () => {
     ]);
   });
 
-
   it("Should get config from HA", async () => {
     const connection = new HomeAssistantConnection("123token");
 
@@ -280,7 +327,6 @@ describe("HomeAssistantConnection", () => {
       })
     );
   });
-
 
   it("Should subscribe to event in HA", async () => {
     const connection = new HomeAssistantConnection("123token");
