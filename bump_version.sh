@@ -1,5 +1,5 @@
 #!/bin/sh
-VERSION=$(cat version)
+VERSION=$(cat VERSION)
 
 echo "Update main Dockerfile image version: $VERSION"
 sed -i "s/holynoodledev\/family-companion:.*/holynoodledev\/family-companion:$VERSION/" Dockerfile 
