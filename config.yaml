@@ -6,6 +6,7 @@ homeassistant_api: true
 init: false
 ingress: true
 panel_admin: false
+panel_icon: mdi:list-box-outline
 url: https://github.com/HolyNoodle/family-companion
 arch:
   - aarch64
