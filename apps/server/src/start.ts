@@ -89,7 +89,7 @@ export const start = async () => {
   });
 
   taskScheduler.on("start_job", (task: Task, job: Job) => {
-    logger.info("scheduler start job");
+    logger.info("Scheduler start job");
     notification.syncTask(task);
 
     connection.fireEvent("task_triggered", {
