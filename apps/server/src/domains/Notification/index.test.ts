@@ -1,18 +1,20 @@
-import {
-  ChannelMode,
-  HomeAssistantConnection,
-  MobileNotificationBuilder,
-} from "@famcomp/home-assistant";
+import { HomeAssistantConnection } from "@famcomp/home-assistant";
 import NotificationManager from ".";
 import { AppState } from "../../types";
 import { getTranslator } from "@famcomp/translations";
 import Logger from "../../logger";
-import { isTaskActive } from "@famcomp/common";
 import dayjs from "dayjs";
+
+import {
+  cleanUnknownTask,
+  createQuickActionNotificationAction,
+  syncPersonTask,
+} from "./utils";
 
 jest.mock("@famcomp/common");
 jest.mock("@famcomp/home-assistant");
 jest.mock("../../logger");
+jest.mock("./utils");
 
 describe("NotificationManager", () => {
   const connection = new HomeAssistantConnection("token234");
@@ -25,25 +27,28 @@ describe("NotificationManager", () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.useFakeTimers();
 
     state = {
-      tasks: [],
-      persons: [],
+      tasks: [
+        {
+          id: "test_task",
+          label: "This is a label",
+          description: "This is a description",
+          startDate: dayjs(),
+          jobs: [{ id: "jobId", date: dayjs(), participations: [] }],
+          active: true,
+        },
+      ],
+      persons: [
+        {
+          id: "person.test",
+          internalId: "AZERTY",
+          isHome: false,
+          name: "Test",
+        },
+      ],
     };
-
-    (MobileNotificationBuilder.prototype.build as any).mockReturnValue({
-      notification: "built",
-    });
-    (MobileNotificationBuilder.prototype.tag as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.action as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.channelMode as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.clear as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.message as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.persist as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.stick as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.target as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.title as any).mockReturnThis();
-    (MobileNotificationBuilder.prototype.url as any).mockReturnThis();
   });
   it("Should instanciate the manager", () => {
     const manager = new NotificationManager(
@@ -72,23 +77,7 @@ describe("NotificationManager", () => {
     );
   });
 
-  it("Should trigger entity state change and sync person task", () => {
-    state.persons.push({
-      id: "person.test",
-      internalId: "AZERTY",
-      isHome: false,
-      name: "Test",
-    });
-    state.tasks.push({
-      id: "test_task",
-      label: "This is a label",
-      description: "This is a description",
-      startDate: dayjs(),
-      jobs: [{ id: "jobId", date: dayjs(), participations: [] }],
-      active: true,
-    });
-    (isTaskActive as any).mockReturnValue(true);
-
+  it("Should trigger entity state change and sync person task", async () => {
     new NotificationManager(connection, state, translator, logger);
 
     (connection.on as any as jest.SpyInstance).mock.calls[0][1]({
@@ -98,90 +87,30 @@ describe("NotificationManager", () => {
       },
     });
 
-    expect(isTaskActive).toHaveBeenCalledTimes(1);
-    expect(isTaskActive).toHaveBeenCalledWith(state.tasks[0]);
-    expect(MobileNotificationBuilder.prototype.target).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.target).toHaveBeenCalledWith(
-      "test"
-    );
-    expect(MobileNotificationBuilder.prototype.tag).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.tag).toHaveBeenCalledWith(
-      "test_task"
-    );
-    expect(MobileNotificationBuilder.prototype.title).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.title).toHaveBeenCalledWith(
-      "This is a label"
-    );
-    expect(MobileNotificationBuilder.prototype.message).toHaveBeenCalledTimes(
-      1
-    );
-    expect(MobileNotificationBuilder.prototype.message).toHaveBeenCalledWith(
-      "This is a description"
-    );
-    expect(MobileNotificationBuilder.prototype.persist).toHaveBeenCalledTimes(
-      1
-    );
-    expect(MobileNotificationBuilder.prototype.persist).toHaveBeenCalledWith(
-      true
-    );
-    expect(MobileNotificationBuilder.prototype.stick).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.stick).toHaveBeenCalledWith(
-      true
-    );
-    expect(
-      MobileNotificationBuilder.prototype.channelMode
-    ).toHaveBeenCalledTimes(1);
-    expect(
-      MobileNotificationBuilder.prototype.channelMode
-    ).toHaveBeenCalledWith(ChannelMode.Default);
-    expect(MobileNotificationBuilder.prototype.url).toHaveBeenCalledTimes(0);
-    expect(MobileNotificationBuilder.prototype.action).toHaveBeenCalledTimes(2);
-    expect(MobileNotificationBuilder.prototype.action).toHaveBeenNthCalledWith(
-      1,
-      {
-        action: "complete.test_task.jobId.test",
-        title: "Done",
-      }
-    );
-    expect(MobileNotificationBuilder.prototype.action).toHaveBeenNthCalledWith(
-      2,
-      {
-        action: "cancel.test_task.jobId.test",
-        title: "Cancel",
-      }
+    await jest.advanceTimersToNextTimerAsync();
+
+    expect(syncPersonTask).toHaveBeenCalledTimes(1);
+    expect(syncPersonTask).toHaveBeenCalledWith(
+      connection,
+      state.persons[0],
+      state.tasks[0],
+      logger,
+      translator,
+      undefined
     );
 
-    expect(MobileNotificationBuilder.prototype.build).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.build).toHaveBeenCalledWith();
-    expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledTimes(1);
-    expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledWith({
-      notification: "built",
-    });
+    expect(createQuickActionNotificationAction).toHaveBeenCalledTimes(1);
+    expect(createQuickActionNotificationAction).toHaveBeenCalledWith(
+      connection,
+      state.persons[0],
+      state.tasks,
+      logger,
+      translator
+    );
   });
 
-  it("Should pass down empty message when task has no description", () => {
-    state.persons.push({
-      id: "person.test",
-      internalId: "AZERTY",
-      isHome: false,
-      name: "Test",
-    });
-    state.tasks.push({
-      id: "test_task",
-      label: "This is a label",
-      startDate: dayjs(),
-      jobs: [{ id: "jobId", date: dayjs(), participations: [] }],
-      active: true,
-    });
-    (isTaskActive as any).mockReturnValue(true);
-
-    new NotificationManager(
-      connection,
-      state,
-      translator,
-      logger,
-      "/notificationUrl/path"
-    );
+  it("Should trigger entity state change and sync person task with notification url", async () => {
+    new NotificationManager(connection, state, translator, logger, "test/url");
 
     (connection.on as any as jest.SpyInstance).mock.calls[0][1]({
       entity_id: "person.test",
@@ -190,85 +119,29 @@ describe("NotificationManager", () => {
       },
     });
 
-    expect(MobileNotificationBuilder.prototype.message).toHaveBeenCalledTimes(
-      1
-    );
-    expect(MobileNotificationBuilder.prototype.message).toHaveBeenCalledWith(
-      ""
-    );
-    expect(MobileNotificationBuilder.prototype.url).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.url).toHaveBeenCalledWith(
-      "/notificationUrl/path"
-    );
-    expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledTimes(1);
-    expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledWith({
-      notification: "built",
-    });
-  });
+    await jest.advanceTimersToNextTimerAsync();
 
-  it("Should send clear notification when task is not active", () => {
-    state.persons.push({
-      id: "person.test",
-      internalId: "AZERTY",
-      isHome: false,
-      name: "Test",
-    });
-    state.tasks.push({
-      id: "test_task",
-      label: "This is a label",
-      startDate: dayjs(),
-      jobs: [],
-      active: true,
-    });
-    (isTaskActive as any).mockReturnValue(false);
-
-    new NotificationManager(
+    expect(syncPersonTask).toHaveBeenCalledTimes(1);
+    expect(syncPersonTask).toHaveBeenCalledWith(
       connection,
-      state,
-      translator,
+      state.persons[0],
+      state.tasks[0],
       logger,
-      "/notificationUrl/path"
+      translator,
+      "test/url"
     );
 
-    (connection.on as any as jest.SpyInstance).mock.calls[0][1]({
-      entity_id: "person.test",
-      new_state: {
-        state: "Home",
-      },
-    });
-
-    expect(MobileNotificationBuilder.prototype.clear).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.clear).toHaveBeenCalledWith();
-    expect(MobileNotificationBuilder.prototype.target).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.target).toHaveBeenCalledWith(
-      "test"
+    expect(createQuickActionNotificationAction).toHaveBeenCalledTimes(1);
+    expect(createQuickActionNotificationAction).toHaveBeenCalledWith(
+      connection,
+      state.persons[0],
+      state.tasks,
+      logger,
+      translator
     );
-    expect(MobileNotificationBuilder.prototype.tag).toHaveBeenCalledTimes(1);
-    expect(MobileNotificationBuilder.prototype.tag).toHaveBeenCalledWith(
-      "test_task"
-    );
-    expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledTimes(1);
-    expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledWith({
-      notification: "built",
-    });
   });
 
   it("Should ignore when updated entity is not a person", () => {
-    state.persons.push({
-      id: "person.test",
-      internalId: "AZERTY",
-      isHome: false,
-      name: "Test",
-    });
-    state.tasks.push({
-      id: "test_task",
-      label: "This is a label",
-      startDate: dayjs(),
-      jobs: [],
-      active: true,
-    });
-    (isTaskActive as any).mockReturnValue(false);
-
     new NotificationManager(
       connection,
       state,
@@ -285,5 +158,214 @@ describe("NotificationManager", () => {
     });
 
     expect(HomeAssistantConnection.prototype.send).toHaveBeenCalledTimes(0);
+  });
+
+  it("Should sync all persons and tasks", async () => {
+    state.persons.push({
+      id: "person.test",
+      internalId: "AZERTY",
+      isHome: false,
+      name: "Test",
+    });
+    state.tasks.push({
+      id: "test_task",
+      label: "This is a label",
+      startDate: dayjs(),
+      jobs: [],
+      active: true,
+    });
+
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    await manager.syncNotifications();
+
+    expect(syncPersonTask).toHaveBeenCalledTimes(4);
+
+    expect(createQuickActionNotificationAction).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should sync one task for everyone", async () => {
+    state.persons.push({
+      id: "person.test",
+      internalId: "AZERTY",
+      isHome: false,
+      name: "Test",
+    });
+    state.tasks.push({
+      id: "test_task",
+      label: "This is a label",
+      startDate: dayjs(),
+      jobs: [],
+      active: true,
+    });
+
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    await manager.syncTask(state.tasks[0]);
+
+    expect(syncPersonTask).toHaveBeenCalledTimes(2);
+    expect(createQuickActionNotificationAction).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should trigger task action complete", async () => {
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    const eventSpy = jest.fn();
+    manager.on("action", eventSpy);
+
+    (connection.on as any as jest.SpyInstance).mock.calls[1][1]({
+      action: "complete.test_task.jobId.personId",
+    });
+
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+    expect(eventSpy).toHaveBeenCalledWith(
+      "complete",
+      state.tasks[0],
+      state.tasks[0].jobs[0],
+      "person.personId"
+    );
+  });
+
+  it("Should trigger task action cancel", async () => {
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    const eventSpy = jest.fn();
+    manager.on("action", eventSpy);
+
+    (connection.on as any as jest.SpyInstance).mock.calls[1][1]({
+      action: "complete.test_task.jobId.personId",
+    });
+
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+    expect(eventSpy).toHaveBeenCalledWith(
+      "complete",
+      state.tasks[0],
+      state.tasks[0].jobs[0],
+      "person.personId"
+    );
+  });
+
+  it("Should not trigger task action and try clearing it for person when task is unknown", async () => {
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    const eventSpy = jest.fn();
+    manager.on("action", eventSpy);
+
+    (connection.on as any as jest.SpyInstance).mock.calls[1][1]({
+      action: "complete.test_task1.jobId.personId",
+    });
+
+    expect(eventSpy).toHaveBeenCalledTimes(0);
+    expect(cleanUnknownTask).toHaveBeenCalledTimes(1);
+    expect(cleanUnknownTask).toHaveBeenCalledWith(
+      connection,
+      "test_task1",
+      "personId",
+      logger
+    );
+  });
+
+  it("Should not trigger task action and try clearing it for person when job is unknown", async () => {
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    const eventSpy = jest.fn();
+    manager.on("action", eventSpy);
+
+    (connection.on as any as jest.SpyInstance).mock.calls[1][1]({
+      action: "complete.test_task.jobId1.personId",
+    });
+
+    expect(eventSpy).toHaveBeenCalledTimes(0);
+    expect(cleanUnknownTask).toHaveBeenCalledTimes(1);
+    expect(cleanUnknownTask).toHaveBeenCalledWith(
+      connection,
+      "test_task",
+      "personId",
+      logger
+    );
+  });
+
+  it("Should not trigger task action and try clearing it for person when task has no jobs", async () => {
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    state.tasks[0].jobs = undefined as any;
+
+    const eventSpy = jest.fn();
+    manager.on("action", eventSpy);
+
+    (connection.on as any as jest.SpyInstance).mock.calls[1][1]({
+      action: "complete.test_task.jobId.personId",
+    });
+
+    expect(eventSpy).toHaveBeenCalledTimes(0);
+    expect(cleanUnknownTask).toHaveBeenCalledTimes(1);
+    expect(cleanUnknownTask).toHaveBeenCalledWith(
+      connection,
+      "test_task",
+      "personId",
+      logger
+    );
+  });
+
+  it("Should trigger task action with only the task when action is 'trigger'", async () => {
+    const manager = new NotificationManager(
+      connection,
+      state,
+      translator,
+      logger,
+      "/notificationUrl/path"
+    );
+
+    const eventSpy = jest.fn();
+    manager.on("action", eventSpy);
+
+    (connection.on as any as jest.SpyInstance).mock.calls[1][1]({
+      action: "trigger.test_task",
+    });
+
+    expect(eventSpy).toHaveBeenCalledTimes(1);
+    expect(eventSpy).toHaveBeenCalledWith("trigger", state.tasks[0]);
   });
 });
