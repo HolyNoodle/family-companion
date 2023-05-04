@@ -114,8 +114,17 @@ describe("Application startup", () => {
     });
   });
 
-  describe("Config", () => {
+  describe("Translations", () => {
     it("Should initialize translator", async () => {
+      await start(process);
+
+      expect(getTranslator).toHaveBeenCalledTimes(1);
+      expect(getTranslator).toHaveBeenCalledWith("en");
+    });
+  });
+
+  describe("Config", () => {
+    it("Should return default config", async () => {
       await start(process);
 
       expect(getTranslator).toHaveBeenCalledTimes(1);

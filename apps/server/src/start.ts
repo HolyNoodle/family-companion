@@ -135,7 +135,7 @@ export const start = async (process: NodeJS.Process) => {
 
   const app = API(state, notification, taskScheduler, logger, () => {
     logger.info("Stopping family companion app");
-    taskScheduler?.stop();
+    taskScheduler.stop();
     connection.stop();
   });
 
