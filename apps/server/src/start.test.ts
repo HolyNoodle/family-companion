@@ -7,6 +7,7 @@ import { State } from "./state";
 import { start } from "./start";
 import { getTranslator } from "@famcomp/translations";
 import { AppState } from "./types";
+import API from "./domains/API";
 
 jest.mock("./state");
 jest.mock("./domains/Job");
@@ -17,8 +18,6 @@ jest.mock("fs");
 jest.mock("@famcomp/home-assistant");
 jest.mock("@famcomp/translations");
 
-process.env.SUPERVISOR_TOKEN = "test_token";
-
 describe("Application startup", () => {
   const connection = new HomeAssistantConnection("fdsfdsqfs");
   const logger = new Logger();
@@ -27,15 +26,31 @@ describe("Application startup", () => {
     tasks: [{ id: "task_id" } as any],
     persons: [],
   };
+  const expressApp = { close: jest.fn() };
+  const notification = new NotificationManager(
+    connection,
+    state,
+    translator,
+    logger
+  );
   const jobScheduler = new JobScheduler(state, logger);
+  const process = {
+    env: {
+      SUPERVISOR_TOKEN: "test_token",
+    },
+    on: jest.fn(),
+    exit: jest.fn(),
+  } as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     (HomeAssistantConnection as any).mockReturnValue(connection);
+    (NotificationManager as any).mockReturnValue(notification);
     (JobScheduler as any).mockReturnValue(jobScheduler);
     (State.get as any).mockReturnValue(state);
     (Logger as any).mockReturnValue(logger);
+    (API as any).mockReturnValue(expressApp);
     (getTranslator as any).mockReturnValue(translator);
     (HomeAssistantConnection.prototype.start as any).mockResolvedValue(true);
     (HomeAssistantConnection.prototype.getPersons as any).mockResolvedValue([
@@ -45,7 +60,7 @@ describe("Application startup", () => {
 
   describe("Home assistant connection", () => {
     it("Should initialize home assistant connection", async () => {
-      await start();
+      await start(process);
 
       expect(HomeAssistantConnection).toHaveBeenCalledTimes(1);
       expect(HomeAssistantConnection).toHaveBeenCalledWith("test_token");
@@ -54,7 +69,7 @@ describe("Application startup", () => {
     });
 
     it("Should subscribe to trigger_task event", async () => {
-      await start();
+      await start(process);
 
       expect(
         HomeAssistantConnection.prototype.subscribeToEvent
@@ -77,7 +92,7 @@ describe("Application startup", () => {
     });
 
     it("Should not when id does not exists trigger_task event", async () => {
-      await start();
+      await start(process);
 
       expect(
         HomeAssistantConnection.prototype.subscribeToEvent
@@ -101,7 +116,7 @@ describe("Application startup", () => {
 
   describe("Config", () => {
     it("Should initialize translator", async () => {
-      await start();
+      await start(process);
 
       expect(getTranslator).toHaveBeenCalledTimes(1);
       expect(getTranslator).toHaveBeenCalledWith("en");
@@ -110,14 +125,14 @@ describe("Application startup", () => {
 
   describe("State", () => {
     it("Should initialize state", async () => {
-      await start();
+      await start(process);
 
       expect(State.get).toHaveBeenCalledTimes(1);
       expect(State.get).toHaveBeenCalledWith();
     });
 
     it("Should get persons", async () => {
-      await start();
+      await start(process);
 
       expect(
         HomeAssistantConnection.prototype.getPersons
@@ -133,9 +148,37 @@ describe("Application startup", () => {
     });
   });
 
+  describe("API", () => {
+    it("Should initialize API", async () => {
+      await start(process);
+
+      expect(API).toHaveBeenCalledTimes(1);
+      expect(API).toHaveBeenCalledWith(
+        state,
+        notification,
+        jobScheduler,
+        logger,
+        expect.anything()
+      );
+    });
+
+    it("Should trigger api close", async () => {
+      await start(process);
+
+      const callback = (API as any).mock.calls[0][4];
+
+      callback();
+
+      expect(JobScheduler.prototype.stop).toHaveBeenCalledTimes(1);
+      expect(JobScheduler.prototype.stop).toHaveBeenCalledWith();
+      expect(HomeAssistantConnection.prototype.stop).toHaveBeenCalledTimes(1);
+      expect(HomeAssistantConnection.prototype.stop).toHaveBeenCalledWith();
+    });
+  });
+
   describe("Job scheduler", () => {
     it("Should initialize job scheduler", async () => {
-      await start();
+      await start(process);
 
       expect(JobScheduler).toHaveBeenCalledTimes(1);
       expect(JobScheduler).toHaveBeenCalledWith(state, logger);
@@ -144,7 +187,7 @@ describe("Application startup", () => {
     });
 
     it("Should add listener on job scheduler", async () => {
-      await start();
+      await start(process);
 
       expect(JobScheduler.prototype.on).toHaveBeenCalledTimes(1);
       const [event, listener] = (JobScheduler.prototype.on as any).mock
@@ -172,7 +215,7 @@ describe("Application startup", () => {
 
   describe("Notification manager", () => {
     it("Should initialize notification manager", async () => {
-      await start();
+      await start(process);
 
       expect(NotificationManager).toHaveBeenCalledTimes(1);
       expect(NotificationManager).toHaveBeenCalledWith(
@@ -182,10 +225,16 @@ describe("Application startup", () => {
         logger,
         undefined
       );
+      expect(
+        NotificationManager.prototype.syncNotifications
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        NotificationManager.prototype.syncNotifications
+      ).toHaveBeenCalledWith();
     });
 
     it("Should listen to notification actions", async () => {
-      await start();
+      await start(process);
 
       expect(NotificationManager.prototype.on).toHaveBeenCalledTimes(1);
       const [event, listener] = (NotificationManager.prototype.on as any).mock
@@ -194,7 +243,7 @@ describe("Application startup", () => {
     });
 
     it("Should should trigger task", async () => {
-      await start();
+      await start(process);
 
       const [_, listener] = (NotificationManager.prototype.on as any).mock
         .calls[0];
@@ -211,7 +260,7 @@ describe("Application startup", () => {
     });
 
     it("Should should complete job", async () => {
-      await start();
+      await start(process);
 
       const [_, listener] = (NotificationManager.prototype.on as any).mock
         .calls[0];
@@ -236,7 +285,7 @@ describe("Application startup", () => {
     });
 
     it("Should should cancel job", async () => {
-      await start();
+      await start(process);
 
       const [_, listener] = (NotificationManager.prototype.on as any).mock
         .calls[0];
@@ -258,6 +307,25 @@ describe("Application startup", () => {
       expect(NotificationManager.prototype.syncTask).toHaveBeenCalledWith(
         state.tasks[0]
       );
+    });
+  });
+
+  describe("Process", () => {
+    it("Should set up process event if SIGTERM", async () => {
+      await start(process);
+
+      expect(process.on).toHaveBeenCalledTimes(1);
+      expect(process.on).toHaveBeenCalledWith("SIGTERM", expect.anything());
+
+      const [_, listener] = (process.on as any).mock
+        .calls[0];
+
+      listener(new Error("test error"));
+
+      expect(expressApp.close).toHaveBeenCalledTimes(1);
+      expect(expressApp.close).toHaveBeenCalledWith()
+      expect(process.exit).toHaveBeenCalledTimes(1);
+      expect(process.exit).toHaveBeenCalledWith(0);
     });
   });
 });

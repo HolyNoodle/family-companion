@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from "fs";
 import { Options } from "./types";
 import Logger, { LogLevel } from "./logger";
 
-export const start = async () => {
+export const start = async (process: NodeJS.Process) => {
   const defaultLogger = new Logger();
 
   const storagePath = process.env.STORAGE_PATH || "/data/db";
