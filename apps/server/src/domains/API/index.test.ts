@@ -71,6 +71,8 @@ describe("API", () => {
     (helmet as any).mockReturnValue(helmetMiddleware);
     (cors as any).mockReturnValue(corsMiddleware);
     (json as any).mockReturnValue(jsonMiddleware);
+
+    logger.memory = ["test log"];
   });
 
   it("Should register json, cors and helmet", () => {
@@ -133,6 +135,26 @@ describe("API", () => {
 
     expect(response.send).toHaveBeenCalledTimes(1);
     expect(response.send).toHaveBeenCalledWith(state.persons);
+    expect(response.end).toHaveBeenCalledTimes(1);
+    expect(response.end).toHaveBeenCalledWith();
+  });
+
+  it("Should register get logs route", () => {
+    API(state, notification, jobScheduler, logger, close);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+    callback();
+
+    expect(expressApp.get).toHaveBeenNthCalledWith(
+      4,
+      "/logs",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.get as any).mock.calls[3];
+
+    listener({}, response);
+
+    expect(response.send).toHaveBeenCalledTimes(1);
+    expect(response.send).toHaveBeenCalledWith(logger.memory);
     expect(response.end).toHaveBeenCalledTimes(1);
     expect(response.end).toHaveBeenCalledWith();
   });
@@ -231,7 +253,10 @@ describe("API", () => {
     expect(state.tasks).toHaveLength(1);
     expect(response.send).toHaveBeenCalledTimes(0);
     expect(response.writeHead).toHaveBeenCalledTimes(1);
-    expect(response.writeHead).toHaveBeenCalledWith(400, "Invalid task parameters");
+    expect(response.writeHead).toHaveBeenCalledWith(
+      400,
+      "Invalid task parameters"
+    );
     expect(response.end).toHaveBeenCalledTimes(1);
     expect(response.end).toHaveBeenCalledWith();
   });
@@ -310,7 +335,7 @@ describe("API", () => {
 
     listener(
       {
-        query: {  },
+        query: {},
       },
       response
     );
