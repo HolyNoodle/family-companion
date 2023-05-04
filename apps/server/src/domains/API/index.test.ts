@@ -295,4 +295,34 @@ describe("API", () => {
     expect(response.end).toHaveBeenCalledTimes(1);
     expect(response.end).toHaveBeenCalledWith();
   });
+
+  it("Should fail delete task when delete non existing task", () => {
+    API(state, notification, jobScheduler, logger, close);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+    callback();
+
+    expect(expressApp.delete).toHaveBeenNthCalledWith(
+      1,
+      "/tasks",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.delete as any).mock.calls[0];
+
+    listener(
+      {
+        query: {  },
+      },
+      response
+    );
+
+    expect(State.set).toHaveBeenCalledTimes(0);
+
+    expect(state.tasks).toHaveLength(1);
+
+    expect(response.send).toHaveBeenCalledTimes(0);
+    expect(response.writeHead).toHaveBeenCalledTimes(1);
+    expect(response.writeHead).toHaveBeenCalledWith(400, "Id is required");
+    expect(response.end).toHaveBeenCalledTimes(1);
+    expect(response.end).toHaveBeenCalledWith();
+  });
 });
