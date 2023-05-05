@@ -9,11 +9,13 @@ import express, { json } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { State } from "../../state";
+import { isTaskActive } from "@famcomp/common";
 
 jest.mock("../Job");
 jest.mock("../Notification");
 jest.mock("../../logger");
 jest.mock("../../state");
+jest.mock("@famcomp/common");
 const mockExpress = {
   use: jest.fn(),
   listen: jest.fn(),
@@ -183,6 +185,14 @@ describe("API", () => {
 
     expect(state.tasks).toHaveLength(1);
 
+    expect(JobScheduler.prototype.update).toHaveBeenCalledTimes(1);
+    expect(JobScheduler.prototype.update).toHaveBeenCalledWith("task_id");
+    expect(NotificationManager.prototype.syncTask).toHaveBeenCalledTimes(1);
+    expect(NotificationManager.prototype.syncTask).toHaveBeenCalledWith({
+      id: "task_id",
+      label: "this is a label",
+      newThings: true,
+    });
     expect(response.send).toHaveBeenCalledTimes(1);
     expect(response.send).toHaveBeenCalledWith({
       ...state.tasks[0],
@@ -222,6 +232,13 @@ describe("API", () => {
       label: "this is another label",
     });
 
+    expect(JobScheduler.prototype.update).toHaveBeenCalledTimes(1);
+    expect(JobScheduler.prototype.update).toHaveBeenCalledWith("test2");
+    expect(NotificationManager.prototype.syncTask).toHaveBeenCalledTimes(1);
+    expect(NotificationManager.prototype.syncTask).toHaveBeenCalledWith({
+      id: "test2",
+      label: "this is another label",
+    });
     expect(response.send).toHaveBeenCalledTimes(1);
     expect(response.send).toHaveBeenCalledWith(state.tasks[1]);
     expect(response.end).toHaveBeenCalledTimes(1);
@@ -285,6 +302,11 @@ describe("API", () => {
 
     expect(state.tasks).toHaveLength(0);
 
+    expect(NotificationManager.prototype.syncTask).toHaveBeenCalledTimes(1);
+    expect(NotificationManager.prototype.syncTask).toHaveBeenCalledWith({
+      id: "task_id",
+      label: "this is a label",
+    });
     expect(response.send).toHaveBeenCalledTimes(1);
     expect(response.send).toHaveBeenCalledWith(true);
     expect(response.end).toHaveBeenCalledTimes(1);
@@ -349,5 +371,181 @@ describe("API", () => {
     expect(response.writeHead).toHaveBeenCalledWith(400, "Id is required");
     expect(response.end).toHaveBeenCalledTimes(1);
     expect(response.end).toHaveBeenCalledWith();
+  });
+
+  it("Should cancel job when job is active", () => {
+    state.tasks[0].jobs = [{ id: "jobId" } as any];
+    const expectedTask = { ...state.tasks[0] };
+    API(state, notification, jobScheduler, logger, close);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+
+    (isTaskActive as any).mockReturnValue(true);
+
+    callback();
+
+    expect(expressApp.delete).toHaveBeenNthCalledWith(
+      1,
+      "/tasks",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.delete as any).mock.calls[0];
+
+    listener(
+      {
+        query: { id: expectedTask.id },
+      },
+      response
+    );
+
+    expect(State.set).toHaveBeenCalledTimes(1);
+    expect(State.set).toHaveBeenCalledWith(state);
+    expect(state.tasks).toHaveLength(0);
+
+    expect(isTaskActive).toHaveBeenCalledTimes(1);
+    expect(isTaskActive).toHaveBeenCalledWith(expectedTask);
+    expect(jobScheduler.cancelJob).toHaveBeenCalledTimes(1);
+    expect(jobScheduler.cancelJob).toHaveBeenCalledWith(expectedTask.jobs[0]);
+    expect(response.send).toHaveBeenCalledTimes(1);
+    expect(response.send).toHaveBeenCalledWith(true);
+    expect(response.end).toHaveBeenCalledTimes(1);
+    expect(response.end).toHaveBeenCalledWith();
+  });
+
+  it("Should upload tasks", () => {
+    API(state, notification, jobScheduler, logger, close);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+
+    callback();
+
+    expect(expressApp.post).toHaveBeenNthCalledWith(
+      2,
+      "/upload",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.post as any).mock.calls[1];
+
+    listener(
+      {
+        body: [
+          {
+            id: "test2",
+          },
+          {
+            id: "test3",
+          },
+        ],
+      },
+      response
+    );
+
+    expect(State.set).toHaveBeenCalledTimes(1);
+    expect(State.set).toHaveBeenCalledWith(state);
+    expect(state.tasks).toHaveLength(2);
+
+    expect(state.tasks).toStrictEqual([
+      {
+        id: "test2",
+      },
+      {
+        id: "test3",
+      },
+    ]);
+
+    expect(
+      NotificationManager.prototype.syncNotifications
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      NotificationManager.prototype.syncNotifications
+    ).toHaveBeenCalledWith();
+    expect(response.writeHead).toHaveBeenCalledTimes(1);
+    expect(response.writeHead).toHaveBeenCalledWith(200);
+    expect(response.end).toHaveBeenCalledTimes(1);
+    expect(response.end).toHaveBeenCalledWith();
+  });
+
+  it("Should get stats", () => {
+    state.tasks = [
+      {
+        id: "test",
+        jobs: [{ participations: [{ person: "person1" }] }],
+      } as any,
+      {
+        id: "test2",
+        jobs: [
+          {
+            participations: [
+              { person: "person1" },
+              { person: "person2" },
+              { person: "person2" },
+            ],
+          },
+        ],
+      } as any,
+      { id: "test3", jobs: [{ participations: [] }] } as any,
+      { id: "test3" } as any,
+    ];
+    API(state, notification, jobScheduler, logger, close);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+
+    callback();
+
+    expect(expressApp.get).toHaveBeenNthCalledWith(
+      3,
+      "/stats",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.get as any).mock.calls[2];
+
+    listener({}, response);
+
+    expect(response.send).toHaveBeenCalledTimes(1);
+    expect(response.send).toHaveBeenCalledWith({
+      person1: {
+        test: 1,
+        test2: 1,
+      },
+      person2: {
+        test2: 2,
+      },
+    });
+    expect(response.end).toHaveBeenCalledTimes(1);
+    expect(response.end).toHaveBeenCalledWith();
+  });
+
+  it("Should call onClose when express app closes", () => {
+    API(state, notification, jobScheduler, logger, close);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+
+    callback();
+
+    expect(expressApp.on).toHaveBeenNthCalledWith(
+      1,
+      "close",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.on as any).mock.calls[0];
+
+    listener();
+
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledWith();
+  });
+
+  it("Should not fail when onClose is undefined", () => {
+    API(state, notification, jobScheduler, logger);
+    const [_, callback] = (expressApp.listen as any).mock.calls[0];
+
+    callback();
+
+    expect(expressApp.on).toHaveBeenNthCalledWith(
+      1,
+      "close",
+      expect.anything()
+    );
+    const [_1, listener] = (expressApp.on as any).mock.calls[0];
+
+    listener();
+
+    expect(close).toHaveBeenCalledTimes(0);
   });
 });
