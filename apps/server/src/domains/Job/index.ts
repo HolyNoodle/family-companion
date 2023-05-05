@@ -11,9 +11,7 @@ export class JobScheduler extends EventEmitter {
   private taskIds: { [id: string]: NodeJS.Timeout };
   private schedulerTimer: NodeJS.Timeout | undefined;
 
-  constructor(private state: AppState,
-    private logger: Logger,
-    ) {
+  constructor(private state: AppState, private logger: Logger) {
     super();
 
     this.taskIds = {};
@@ -48,10 +46,12 @@ export class JobScheduler extends EventEmitter {
   private stopTask(id: string) {
     const timeout = this.taskIds[id];
 
-    this.logger.info("Clear timeout for task", id);
-    clearTimeout(timeout);
+    if (timeout) {
+      this.logger.info("Clear timeout for task", id);
+      clearTimeout(timeout);
 
-    delete this.taskIds[id];
+      delete this.taskIds[id];
+    }
   }
 
   private startTask(task: Task) {
@@ -70,7 +70,6 @@ export class JobScheduler extends EventEmitter {
       startAt: start.toISOString(),
       endAt: endAt.toISOString(),
     }).pop();
-
 
     if (!nextDateString) {
       this.logger.debug("Skipping", task.label, task.cron);
@@ -100,7 +99,7 @@ export class JobScheduler extends EventEmitter {
   }
 
   triggerTask(task: Task) {
-    if(isTaskActive(task)) {
+    if (isTaskActive(task)) {
       this.logger.debug("Task", task.id, "already active, skipping trigger");
       return undefined;
     }
@@ -116,7 +115,7 @@ export class JobScheduler extends EventEmitter {
     };
 
     if (task.jobs.unshift(job) > 100) {
-      this.logger.debug("Limit size of jobs to", 100, "for task", );
+      this.logger.debug("Limit size of jobs to", 100, "for task");
       task.jobs = task.jobs.slice(0, 100);
     }
 
@@ -145,4 +144,3 @@ export class JobScheduler extends EventEmitter {
     job.completionDate = dayjs();
   }
 }
-

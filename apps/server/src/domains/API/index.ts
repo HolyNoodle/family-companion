@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import { AppState } from "../../types";
 import NotificationManager from "../Notification";
 import { JobScheduler } from "../Job";
-import { Stats, Task } from "@famcomp/common";
+import { Stats, Task, isTaskActive } from "@famcomp/common";
 import Logger from "../../logger";
 
 const PORT: number = 7000;
@@ -52,7 +52,8 @@ export default (
 
       State.set(state);
 
-      taskScheduler.update(req.body.id! as string);
+      taskScheduler.update(task.id);
+      notification.syncTask(task);
 
       res.send(task).end();
     });
@@ -65,24 +66,26 @@ export default (
       }
 
       const index = state.tasks.findIndex((t) => t.id === req.query.id);
+      const task = state.tasks[index];
 
-      if (index < 0) {
+      if (!task) {
         res.writeHead(404, "Task not found");
         res.end();
         return;
       }
 
-      if (state.tasks[index].jobs?.[0]?.completionDate) {
-        state.tasks[index].jobs[0].completionDate = dayjs();
+
+      if (isTaskActive(task)) {
+        taskScheduler.cancelJob(task.jobs[0]);
       }
 
-      notification.syncNotifications();
+      notification.syncTask(task);
 
       state.tasks.splice(index, 1);
 
       State.set(state);
 
-      taskScheduler.update(req.query.id! as string);
+      taskScheduler.update(task.id);
 
       res.send(true).end();
     });
