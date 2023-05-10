@@ -72,7 +72,7 @@ export class JobScheduler extends EventEmitter {
     }).pop();
 
     if (!nextDateString) {
-      this.logger.debug("Skipping", task.label, task.cron);
+      this.logger.debug("Skipping", task.id);
       return;
     }
 
@@ -88,19 +88,31 @@ export class JobScheduler extends EventEmitter {
       nextDate.toISOString()
     );
 
-    const timer = setTimeout(() => {
+    this.taskIds[task.id] = setTimeout(() => {
+      this.logger.debug("Trigger next job for", task.id);
       delete this.taskIds[task.id];
-      this.triggerTask(task);
+      const currentTask = this.state.tasks.find((t) => t.id === task.id);
 
-      this.startTask(task);
+      if (!currentTask) {
+        this.logger.debug("Task not found", task.id);
+        return;
+      }
+
+      if(this.triggerTask(currentTask)) {
+        this.startTask(currentTask);
+      }
     }, nextDate.getTime() - now.getTime());
-
-    this.taskIds[task.id] = timer;
   }
 
   triggerTask(task: Task) {
     if (isTaskActive(task)) {
-      this.logger.debug("Task", task.id, "already active, skipping trigger");
+      this.logger.debug(
+        "Task",
+        task.id,
+        "already active, skipping trigger. Details:",
+        JSON.stringify({ ...task, job: task.jobs?.slice(0, 3) })
+      );
+
       return undefined;
     }
 

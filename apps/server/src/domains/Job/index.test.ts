@@ -152,11 +152,7 @@ describe("JobScheduler", () => {
     expect(setTimeoutSpy).toHaveBeenCalledTimes(0);
 
     expect(Logger.prototype.debug).toHaveBeenCalledTimes(1);
-    expect(Logger.prototype.debug).toHaveBeenCalledWith(
-      "Skipping",
-      "test",
-      "0 10 10 *"
-    );
+    expect(Logger.prototype.debug).toHaveBeenCalledWith("Skipping", "test123");
 
     expect(scheduler["state"]["tasks"][0]).toStrictEqual(task);
     expect(eventSpy).toHaveBeenCalledTimes(0);
@@ -330,5 +326,33 @@ describe("JobScheduler", () => {
       participations: [],
       completionDate: dayjs(),
     });
+  });
+
+  it("Should retrieve right task reference on next call, if state changed externally between executions", () => {
+    const task = createTask();
+    const state = { tasks: [{ ...task }] } as AppState;
+    const scheduler = new JobScheduler(state, new Logger());
+    const isTaskActive = jest
+      .spyOn(common, "isTaskActive")
+      .mockReturnValue(false);
+
+    scheduler.start();
+
+    let taskExecution = setTimeoutSpy.mock.calls[0][0];
+    taskExecution();
+
+    let expectedFirstTask = state.tasks[0];
+
+    state.tasks[0] = {
+      ...state.tasks[0],
+      jobs: [{ ...state.tasks[0].jobs[0], completionDate: "anything" as any }],
+    } as Task;
+
+    taskExecution = setTimeoutSpy.mock.calls[1][0];
+    taskExecution();
+
+    expect(isTaskActive).toHaveBeenCalledTimes(2);
+    expect(isTaskActive).toHaveBeenNthCalledWith(1, expectedFirstTask);
+    expect(isTaskActive).toHaveBeenNthCalledWith(2, state.tasks[0]);
   });
 });
