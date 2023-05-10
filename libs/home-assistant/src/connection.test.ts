@@ -5,6 +5,9 @@ process.env.SUPERVISOR_URL = "test.url:4321";
 jest.mock("ws");
 
 describe("HomeAssistantConnection", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   it("Should instanciate HomeAssistantConnection", () => {
     const connection = new HomeAssistantConnection("123token");
 
@@ -99,7 +102,29 @@ describe("HomeAssistantConnection", () => {
     await expect(startPromise).rejects.toBe("Invalid auth");
   });
 
-  it("Should log when  socket error", async () => {
+  it("Should reconnect when connection closes", async () => {
+    const connection = new HomeAssistantConnection("123token");
+
+    const startPromise = connection.start();
+
+    expect(connection["ws"]).toBeInstanceOf(WebSocket);
+
+    let ws = connection["ws"];
+
+    ws!.onopen!(undefined as any);
+
+    ws!.onmessage!({
+      data: Buffer.from(JSON.stringify({ type: "auth_ok" })),
+    } as any);
+
+    await startPromise;
+
+    ws!.onclose!({ reason: "test reason" } as any);
+
+    expect(WebSocket).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should log when socket error", async () => {
     const error = jest.spyOn(console, "error");
     const connection = new HomeAssistantConnection("123token");
 
