@@ -78,7 +78,6 @@ export class HomeAssistantConnection extends EventEmitter {
     const url = "ws://" + process.env.SUPERVISOR_URL! + "/websocket";
 
     console.log("Contacting Home Assistant instance", url);
-
     this.ws = new WebSocket(url);
 
     this.ws.onerror = (ex) => {
@@ -111,6 +110,14 @@ export class HomeAssistantConnection extends EventEmitter {
         if (event.type === "auth_ok") {
           console.log("Home assistant notification system is now ready");
           this.ready = true;
+          
+          this.ws!.onclose = (event) => {
+            console.log("Websocket closing", event);
+      
+            this.ready = false;
+            this.start();
+          }
+
           authPromiseResolver!();
         }
 
